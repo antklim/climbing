@@ -7,6 +7,7 @@
   const Body = Matter.Body;
   const Bodies = Matter.Bodies;
   const MouseConstraint = Matter.MouseConstraint;
+  const Events = Matter.Events;
 
   // create an engine
   const engine = Engine.create();
@@ -40,15 +41,15 @@
 
   const climberParts = [
     // hands
-    Bodies.circle( 70, 150, 5),
-    Bodies.circle(130, 150, 5),
+    Bodies.circle(150, 475, 5),
+    Bodies.circle(210, 475, 5),
 
     // centre of gravity
-    Bodies.circle(100, 200, 9),
+    Bodies.circle(180, 525, 9),
 
     // feet
-    Bodies.circle( 70, 250, 5),
-    Bodies.circle(130, 250, 5),
+    Bodies.circle(150, 575, 5),
+    Bodies.circle(210, 575, 5),
   ];
 
   const climber = Body.create({
@@ -84,4 +85,36 @@
 
   // pass mouse to renderer to enable showMousePosition
   render.mouse = mouseConstraint.mouse;
+
+  let counter = 0;
+  const moveClimber = () => {
+    console.log(climber);
+
+    let leftSidePosition = 800;
+    let topSidePosition = 0;
+
+    for (let i = 0; i < climber.parts.length; i++) {
+      const climberPart = climber.parts[i];
+
+      leftSidePosition = (leftSidePosition > climberPart.position.x)
+        ? climberPart.position.x
+        : leftSidePosition;
+
+      topSidePosition = (topSidePosition > climberPart.position.y)
+        ? topSidePosition
+        : climberPart.position.y;
+    }
+
+    console.log(topSidePosition);
+    climber.positionImpulse.x += Math.abs(leftSidePosition - 300);
+    climber.positionImpulse.y -= Math.abs(topSidePosition - 500);
+  }
+
+  Events.on(engine, 'beforeUpdate', (event) => {
+    counter++;
+
+    if (counter === 40) {
+      moveClimber();
+    }
+  });
 })();
