@@ -9,6 +9,7 @@
   const Constraint = Matter.Constraint;
   const MouseConstraint = Matter.MouseConstraint;
   const Events = Matter.Events;
+  const Composite = Matter.Composite;
 
   // create an engine
   const engine = Engine.create();
@@ -193,9 +194,7 @@
     }
   });
 
-  World.add(world, [ torso, hip, shoulderL, shoulderR, elbowL, elbowR,
-    handL, handR, footL, footR
-  ]);
+  const climberBodies = [torso, hip, shoulderL, shoulderR, elbowL, elbowR, handL, handR, footL, footR];
 
   const armL = Constraint.create({ bodyA: shoulderL, bodyB: elbowL });
   const armR = Constraint.create({ bodyA: shoulderR, bodyB: elbowR });
@@ -211,9 +210,13 @@
   const leg1R = Constraint.create({ bodyA: shoulderR, bodyB: footR, stiffness: 1 });
   const leg2R = Constraint.create({ bodyA: hip, bodyB: footR, stiffness: 1 });
 
-  World.add(world, [armL, armR, forearmL, forearmR, leg1L, leg1R, leg2L, leg2R,
-    spine, trapL, trapR, abL, abR
-  ]);
+  const climberConstraints = [armL, armR, forearmL, forearmR, leg1L, leg1R, leg2L, leg2R, spine, trapL, trapR, abL, abR];
+
+  const climber = Composite.create({
+    bodies: climberBodies,
+    constraints: climberConstraints
+  });
+  World.add(world, climber);
 
   const calculateCog = (arrayOfBodies) => {
     const r = arrayOfBodies.reduce((accumulator, body) => {
@@ -229,16 +232,35 @@
     }
   }
 
-  const cogCoordinates = calculateCog([torso, hip, shoulderL, shoulderR, footL, footR,
-    elbowL, elbowR, handL, handR
-  ]);
-  const cog = Bodies.circle(cogCoordinates.x, cogCoordinates.y, 5, {
+  const cogCoordinates = calculateCog(climberBodies);
+  const cogPointer = Bodies.circle(cogCoordinates.x, cogCoordinates.y, 5, {
     isStatic: true,
     collisionFilter: {
       mask: redCategory | greenCategory
     }
   });
-  World.add(world, cog);
+  World.add(world, cogPointer);
+
+  const cogAxeX = Bodies.rectangle(cogCoordinates.x, cogCoordinates.y, 50, 1, {
+    collisionFilter: {
+      mask: redCategory | greenCategory
+    },
+    isStatic: true
+  });
+  const cogAxeY = Bodies.rectangle(cogCoordinates.x, cogCoordinates.y, 1, 50, {
+    collisionFilter: {
+      mask: redCategory | greenCategory
+    },
+    isStatic: true
+  });
+  World.add(world, [cogAxeX, cogAxeY]);
+
+  const moveCog = () => {
+    const cogCoordinates = calculateCog(climberBodies);
+    Body.setPosition(cogPointer, { x: cogCoordinates.x, y: cogCoordinates.y });
+    Body.setPosition(cogAxeX, { x: cogCoordinates.x, y: cogCoordinates.y });
+    Body.setPosition(cogAxeY, { x: cogCoordinates.x, y: cogCoordinates.y });
+  };
 
   // run the engine
   Engine.run(engine);
@@ -257,9 +279,6 @@
   render.mouse = mouseConstraint.mouse;
 
   Events.on(engine, 'beforeUpdate', (event) => {
-    const cogCoordinates = calculateCog([torso, hip, shoulderL, shoulderR, footL, footR,
-      elbowL, elbowR, handL, handR
-    ]);
-    Body.setPosition(cog, { x: cogCoordinates.x, y: cogCoordinates.y });
+    moveCog();
   });
 })();
