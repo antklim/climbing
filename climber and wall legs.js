@@ -1,5 +1,8 @@
 //interesting link http://codepen.io/lilgreenland/pen/jrMvaB?editors=1010 has vectors for gravity and velcoity
 
+//To DO:
+// twist shoulders
+//lock biceps
 
 (function () {
     // module aliases
@@ -46,9 +49,20 @@
     const redColor = '#C44D58';
     const greenColor = '#C7F464';
     const blueColor = '#4ECDC4';
+    const greyColor = '#708090'
 
-    
-	
+    let bottomBorder = Bodies.rectangle(400, 625, 800, 50, {
+        collisionFilter: {
+            category: defaultCategory
+        },
+        isStatic: true,
+        render: {
+            fillStyle: 'transparent',
+            lineWidth: 1
+        }
+    });
+    World.add(world, bottomBorder);
+
 
     //add climber
     var torso = Bodies.circle(600, 400, 10, {
@@ -56,114 +70,93 @@
         render: {
             strokeStyle: greenColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1},
         collisionFilter: {
-            category: blueCategory
-        },
+            category: blueCategory},
     });
     var thoracic = Bodies.circle(600, 440, 10, {
         setMass: 1,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
             category: blueCategory,
-            mask: blueCategory
-        },
+            mask: blueCategory},
     });
     var lumbar = Bodies.circle(600, 460, 10, {
         setMass: 1,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1 },
         collisionFilter: {
             category: blueCategory,
-            mask: blueCategory
-        },
+            mask: blueCategory },
     });
     var hip = Bodies.circle(600, 500, 20, {
         setMass: 10,
         render: {
             strokeStyle: greenColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
-            category: blueCategory,
-           
-        },
+            category: blueCategory,},
     });
-    var hipl = Bodies.circle(570, 500, 5, {
+    var hipl = Bodies.circle(570, 490, 5, {
         setMass: 1,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
             category: blueCategory,
-            mask: blueCategory 
-        },
+            mask: redCategory  },
     });
-    var hipr = Bodies.circle(630, 500, 5, {
+    var hipr = Bodies.circle(630, 490, 5, {
         setMass: 1,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
             category: blueCategory,
-            mask: blueCategory 
-        },
+            mask: redCategory },
     });
-    var shoulderl = Bodies.circle(570, 400, 10, {
+    var shoulderl = Bodies.circle(570, 410, 10, {
         setMass: 1,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1, },
         collisionFilter: {
             category: blueCategory,
-            mask: blueCategory
-        },
+            mask: blueCategory},
     });
-    var shoulderr = Bodies.circle(630, 400, 10, {
+    var shoulderr = Bodies.circle(630, 410, 10, {
         setMass: 1,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
             category: blueCategory,
-            mask: blueCategory 
-        },
+            mask: blueCategory },
     });
 
 
     let elbowl = Bodies.circle(560, 450, 10, {
-        setMass: 1,
-        restitution: 0.0001,
+        setMass: 2,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
             category: blueCategory,
-            mask: redCategory
-        }
+            mask: redCategory}
     });
     let elbowr = Bodies.circle(640, 450, 10, {
-        setMass: 1,
-        restitution: 0.0001,
+        setMass: 2,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
@@ -174,103 +167,108 @@
             mask: redCategory
         }
     });
-    let handl = Bodies.circle(540, 500, 10, {
+    let handl = Bodies.circle(540, 490, 10, {
         setMass: 1,
         render: {
             strokeStyle: redColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
-            category: redCategory
-        }
+            category: redCategory}
     });
-    let handr = Bodies.circle(660, 500, 10, {
+    let handr = Bodies.circle(660, 490, 10, {
         setMass: 1,
         render: {
             strokeStyle: redColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
-            category: redCategory,
-        }
+            category: redCategory,}
     });
-    let footl = Bodies.circle(575, 600, 10, {
+    let footl = Bodies.rectangle(575, 610, 15,15, {
         setMass: 5,
-        isModified: true,
+        restitution: 0.00000001,
         render: {
             strokeStyle: redColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1, },
         collisionFilter: {
-            category: redCategory
-        }
+            category: redCategory }
     });
-    let footblockl = Bodies.circle(560, 600, 10, {
-        setMass: 0.1,
+    let footblockl = Bodies.rectangle(570, 610, 10, 10, {
+        setMass: 0.001,
+        restitution: 0.0000001,
+        render: {
+            strokeStyle: greyColor,
+            fillStyle: 'transparent',
+            lineWidth: 1,},
+        collisionFilter: {
+            category: blueCategory }
+    });
+    let footblockr = Bodies.rectangle(635, 610, 10, 10, {
+        setMass: 0.001,
+        restitution: 0.00000001,
+        render: {
+            strokeStyle: greyColor,
+            fillStyle: 'transparent',
+            lineWidth: 1,},
+        collisionFilter: {
+            category: blueCategory }
+    });
+    let kneeblockl = Bodies.circle(585, 550, 1, {
+        setMass: 0.01,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
-            category: blueCategory
-        }
+            category: blueCategory}
     });
-    let kneeblockl = Bodies.circle(550, 560, 1, {
-        setMass: 0.11,
+    let kneeblockr = Bodies.circle(615, 550, 1, {
+        setMass: 0.01,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
-            category: blueCategory
-        }
+            category: blueCategory}
     });
-    let footr = Bodies.circle(625, 600, 10, {
+    let footr = Bodies.rectangle(625, 610, 15, 15, {
         setMass: 5,
+        restitution: 0.00000001,
         render: {
             strokeStyle: redColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
-            category: redCategory
-        }
+            category: redCategory}
     });
     let kneel = Bodies.circle(565, 550, 10, {
         setMass: 5,
-        isModified: true,
         render: {
-            strokeStyle: redColor,
+            strokeStyle: blueColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
-            category: greenCategory
-        }
+            category: greenCategory}
     });
     let kneer = Bodies.circle(635, 550, 10, {
         setMass: 5,
         render: {
-            strokeStyle: redColor,
+            strokeStyle: blueColor,
             fillStyle: 'transparent',
-            lineWidth: 1,
-        },
+            lineWidth: 1,},
         collisionFilter: {
-            category: greenCategory
-        }
+            category: greenCategory }
     });
 
   
 
     var climber = [torso, thoracic, lumbar, hip, hipl, hipr,
         shoulderr, shoulderl, elbowl, elbowr, handl, handr,
-        footl, footr, kneel, kneer, footblockl];
+        footl, footr, kneel, kneer, footblockl, footblockr, kneeblockl, kneeblockr];
 
+    //constraints
 
     //arms
     
@@ -291,12 +289,12 @@
     let upperabr =      Constraint.create({bodyA: shoulderr, bodyB: hip, stiffness:0.2});
     let lowerabr =      Constraint.create({bodyA: hipr, bodyB: thoracic, stiffness: 0.2});
     let obliquer =      Constraint.create({bodyA: hipr, bodyB: lumbar});
-    let spineup =       Constraint.create({bodyA: torso, bodyB: thoracic});
-    let spinemid =      Constraint.create({bodyA: thoracic, bodyB: lumbar});
-    let spinelow =      Constraint.create({bodyA: lumbar, bodyB: hip});
+    let spineup = Constraint.create({ bodyA: torso, bodyB: thoracic, stiffness: 1.5 });
+    let spinemid = Constraint.create({ bodyA: thoracic, bodyB: lumbar, stiffness: 1.5 });
+    let spinelow = Constraint.create({ bodyA: lumbar, bodyB: hip, stiffness: 1.5 });
     let trapmid =       Constraint.create({bodyA: shoulderl, bodyB: shoulderr});
-    let trapl =         Constraint.create({bodyA: torso, bodyB: shoulderl, stiffness: 2});
-    let trapr =         Constraint.create({bodyA: torso, bodyB: shoulderr, stiffness: 2});
+    let trapl =         Constraint.create({bodyA: torso, bodyB: shoulderl, stiffness: 1});
+    let trapr =         Constraint.create({bodyA: torso, bodyB: shoulderr, stiffness: 1});
     let abl =           Constraint.create({bodyB: hipl, bodyA: shoulderl});
     let abr =           Constraint.create({bodyB: hipr, bodyA: shoulderr});
     var core = [trapl, trapr, lowertrapl, lowertrapr, trapmid, latl, latr, upperabl, upperabr,
@@ -313,14 +311,19 @@
     let leg3r =         Constraint.create({bodyA: hip, bodyB: footr, stiffness: 1});
     let femurr =        Constraint.create({bodyA: hipr, bodyB: kneer, stiffness: 1});
     let tibiar =        Constraint.create({bodyA: kneer, bodyB: footr, stiffness: 1});
-    let block1l = Constraint.create({ bodyA: footblockl, bodyB: kneeblockl, stiffness: 1.5, render: { strokeStyle: '#C44D58', lineWidth: 1 } });
-    let block2l = Constraint.create({ bodyA: footblockl, bodyB: kneel, stiffness: 1.5, render: { strokeStyle: '#C44D58', lineWidth: 1 } });
-    let block3l = Constraint.create({ bodyA: hipl, bodyB: kneeblockl, stiffness: 1.5, render: { strokeStyle: '#C44D58', lineWidth: 1 } });
-    let block4l = Constraint.create({bodyA: kneel, bodyB: kneeblockl, stiffness: 1.5, render: { strokeStyle: '#C44D58' }});
-    var legs = [leg1l, leg1r, leg2l, leg2r, leg3l, leg3r,
-                femurl, femurr, tibial, tibiar,
-                block1l, block2l, block3l, block4l];
-    var legmusclesl = [leg1l, leg2l, leg3l];
+    let block1l = Constraint.create({ bodyA: footblockl, bodyB: kneeblockl, stiffness: 1.5, render: { strokeStyle: '#708090', lineWidth: 1 } });
+    let block2l = Constraint.create({ bodyA: footblockl, bodyB: kneel, stiffness: 1.5, render: { strokeStyle: '#708090', lineWidth: 1 } });
+    let block3l = Constraint.create({ bodyA: hipl, bodyB: kneeblockl, stiffness: 1.5, render: { strokeStyle: '#708090', lineWidth: 1 } });
+    let block4l = Constraint.create({ bodyA: kneel, bodyB: kneeblockl, stiffness: 1.5, render: { strokeStyle: '#708090' } });
+    let block1r = Constraint.create({ bodyA: footblockr, bodyB: kneeblockr, stiffness: 1.5, render: { strokeStyle: '#708090', lineWidth: 1 } });
+    let block2r = Constraint.create({ bodyA: footblockr, bodyB: kneer, stiffness: 1.5, render: { strokeStyle: '#708090', lineWidth: 1 } });
+    let block3r = Constraint.create({ bodyA: hipr, bodyB: kneeblockr, stiffness: 1.5, render: { strokeStyle: '#708090', lineWidth: 1 } });
+    let block4r = Constraint.create({ bodyA: kneer, bodyB: kneeblockr, stiffness: 1.5, render: { strokeStyle: '#708090' } });
+   
+    var blockers = [block1l, block1r, block2l, block2r, block3l, block3r, block4l, block4r];
+
+    var legs = [femurl, femurr, tibial, tibiar];
+    var legmuscles = [leg1l, leg2l, leg3l, leg1r, leg2r, leg3r];
 
     //hips
     let pubisl = Constraint.create({bodyA: hip, bodyB: hipl, stiffness: 1});
@@ -329,37 +332,66 @@
     let illiumr = Constraint.create({ bodyA: hipr, bodyB: lumbar, stiffness: 1});
     var hips = [pubisl, pubisr, illiuml, illiumr];
 
-    var Constraintrender = function (arrayOfConstraints) {
+    var ConstraintrenderBlue = function (arrayOfConstraints) {
+        for (let i = 0; i < arrayOfConstraints.length; i++) {
+            arrayOfConstraints[i].render.lineWidth = 3,
+            arrayOfConstraints[i].render.strokeStyle = blueColor
+        }
+    };
+    var ConstraintrenderGrey = function (arrayOfConstraints) {
+        for (let i = 0; i < arrayOfConstraints.length; i++) {
+            arrayOfConstraints[i].render.lineWidth = 0.5,
+            arrayOfConstraints[i].render.strokeStyle = greyColor
+        }
+    };
+    var ConstraintrenderRed = function (arrayOfConstraints) {
         for (let i = 0; i < arrayOfConstraints.length; i++) {
             arrayOfConstraints[i].render.lineWidth = 1,
-            arrayOfConstraints[i].render.strokeStyle = '#4ECDC4'
+            arrayOfConstraints[i].render.strokeStyle = redColor
         }
     };
 
-    Constraintrender(arms);
-    Constraintrender(core);
-    Constraintrender(legs);
-    Constraintrender(hips);
+
+    ConstraintrenderBlue(arms);
+    ConstraintrenderBlue(core);
+    ConstraintrenderBlue(legs);
+    ConstraintrenderRed(legmuscles);
+    ConstraintrenderBlue(hips);
+    ConstraintrenderGrey(blockers);
+    
 
     World.add(world, arms);
     World.add(world, core);
     World.add(world, legs);
+    World.add(world, legmuscles);
     World.add(world, hips);
+    World.add(world, blockers);
 
     
     var addclimber = function (arrayOfBodies) {
-
         for (let i = 0; i < arrayOfBodies.length; i++) {
             let list = arrayOfBodies[i];
-            World.add(world, list)
-        }
+            World.add(world, list)}
     };
 
     addclimber(climber);
 
-    
+    var setairfriction = function (arrayOfBodies) {
+        for (let i = 0; i < arrayOfBodies.length; i++) {
+            let list = arrayOfBodies[i];
+            list.frictionAir = 0.01;
+        }
+    };
+    setairfriction(climber);
 
-    //render vector of force on holds
+ //make arm muscles
+    let bicepl = Constraint.create({ bodyA: shoulderl, bodyB: handl, stiffness: 0.4 });
+    let bicepr = Constraint.create({ bodyA: shoulderr, bodyB: handr, stiffness: 0.4 });
+ 
+    let biceps = [bicepl, bicepr];
+    addclimber(biceps);
+    ConstraintrenderRed(biceps);
+   
     //render center of gravity
     //x coordinate = x1.m1 + x2.m2 ... / m1 + m2 ...
     //y coordinate = y1.m1 + y2.m2 ... / m1 + m2 ...
@@ -423,7 +455,7 @@
 
 
 
-
+//Holds that arms and legs stick to
 
     // collider is the red box in the middle
     let collider = Bodies.rectangle(300, 300, 50, 50, {
@@ -441,31 +473,19 @@
     });
     World.add(world, collider);
 
-    let bottomBorder = Bodies.rectangle(400, 620, 800, 50, {
-        collisionFilter: {
-            category: defaultCategory
-        },
-        isStatic: true,
-        render: {
-            fillStyle: 'transparent',
-            lineWidth: 1
-        }
-    });
-    World.add(world, bottomBorder);
-
 
     // events to adjust legs
 
     //functions to add or remove leg constraints (except for femur and tibia)
 
-    var addleg = function (arrayOfBodies) {
+    var addmuscles = function (arrayOfBodies) {
 
         for (let i = 0; i < arrayOfBodies.length; i++) {
             let list = arrayOfBodies[i];
             World.add(world, list)
         }
     };
-    var removeleg = function (arrayOfBodies) {
+    var removemuscles = function (arrayOfBodies) {
 
         for (let i = 0; i < arrayOfBodies.length; i++) {
             let list = arrayOfBodies[i];
@@ -474,12 +494,42 @@
     };
 
     // event to adjust legs on foot click
-    //if mouse clicks on FOOT, then constraints dissapear, on mouse up, constrainst sare added back in
+    //if mouse clicks on FOOTL, then left leg constraints dissapear, on mouse up, constrainst sare added back in
     Events.on(engine, 'beforeUpdate', function (event) {
          if (mouseConstraint.mouse.button !== -1) {
-            if (mouseConstraint.body && mouseConstraint.body == footl) {
-                var legmusclesl = [leg1l, leg2l, leg3l];
-                removeleg(legmusclesl)}
+             if (mouseConstraint.body && mouseConstraint.body == footl) {
+                 var legmusclesl = [leg1l, leg2l, leg3l];
+                 removemuscles(legmusclesl)
+             };
+         }
+         if (mouseConstraint.mouse.button !== 0) {
+             if (mouseConstraint.body && mouseConstraint.body == footl) {
+                 leg1l.length = Math.sqrt(Math.pow((footl.position.x - hipl.position.x), 2) + Math.pow((footl.position.y - hipl.position.y), 2));
+                 leg2l.length = Math.sqrt(Math.pow((hip.position.x - kneel.position.x), 2) + Math.pow((hip.position.y - kneel.position.y), 2));
+                 leg3l.length = Math.sqrt(Math.pow((footl.position.x - hip.position.x), 2) + Math.pow((footl.position.y - hip.position.y), 2));
+                 var legmusclesl = [leg1l, leg2l, leg3l];
+                 addmuscles(legmusclesl)
+
+             }
+         }
+    });
+    //if mouse clicks on FOOTR, then right leg constraints dissapear, on mouse up, constrainst sare added back in
+    Events.on(engine, 'beforeUpdate', function (event) {
+        if (mouseConstraint.mouse.button !== -1) {
+            if (mouseConstraint.body && mouseConstraint.body == footr) {
+                var legmusclesr = [leg1r, leg2r, leg3r];
+                removemuscles(legmusclesr)
+            }
+        }
+        if (mouseConstraint.mouse.button !== 0) {
+            if (mouseConstraint.body && mouseConstraint.body == footr) {
+                leg1r.length = Math.sqrt(Math.pow((footr.position.x - hipr.position.x), 2) + Math.pow((footr.position.y - hipr.position.y), 2));
+                leg2r.length = Math.sqrt(Math.pow((hip.position.x - kneer.position.x), 2) + Math.pow((hip.position.y - kneer.position.y), 2));
+                leg3r.length = Math.sqrt(Math.pow((footr.position.x - hip.position.x), 2) + Math.pow((footr.position.y - hip.position.y), 2));
+                var legmusclesr = [leg1r, leg2r, leg3r];
+                addmuscles(legmusclesr)
+
+            }
         }
     });
 
@@ -489,8 +539,11 @@
         if (mouseConstraint.mouse.button !== -1) {
             if (mouseConstraint.body && mouseConstraint.body == hip) {
 
-                var legmusclesl = [leg1l, leg2l, leg3l];
-                removeleg(legmusclesl);}
+                var legmuscles = [leg1l, leg2l, leg3l, leg1r, leg2r, leg3r];
+                removemuscles(legmuscles);
+                var biceps = [bicepl, bicepr];
+                removemuscles(biceps);
+            }
         }
     });
  
@@ -503,14 +556,91 @@
                 leg1l.length = Math.sqrt(Math.pow((footl.position.x - hipl.position.x), 2) + Math.pow((footl.position.y - hipl.position.y), 2));
                 leg2l.length = Math.sqrt(Math.pow((hip.position.x - kneel.position.x), 2) + Math.pow((hip.position.y - kneel.position.y), 2));
                 leg3l.length = Math.sqrt(Math.pow((footl.position.x - hip.position.x), 2) + Math.pow((footl.position.y - hip.position.y), 2));
-                var legmusclesl = [leg1l, leg2l, leg3l];
-                addleg(legmusclesl)
-             
+                leg1r.length = Math.sqrt(Math.pow((footr.position.x - hipr.position.x), 2) + Math.pow((footr.position.y - hipr.position.y), 2));
+                leg2r.length = Math.sqrt(Math.pow((hip.position.x - kneer.position.x), 2) + Math.pow((hip.position.y - kneer.position.y), 2));
+                leg3r.length = Math.sqrt(Math.pow((footr.position.x - hip.position.x), 2) + Math.pow((footr.position.y - hip.position.y), 2));
+
+                var legmuscles = [leg1l, leg2l, leg3l, leg1r, leg2r, leg3r];
+                addmuscles(legmuscles);
+
+                bicepl.length = Math.sqrt(Math.pow((shoulderl.position.x - handl.position.x), 2) + Math.pow((shoulderl.position.y - handl.position.y), 2));
+                var biceps = [bicepl, bicepr];
+                addmuscles(biceps)
         }}
     });
     
+    //if mouse clicks on HANDL, then left bicep constraints dissapear, on mouse up, constrainsts are added back in
+    Events.on(engine, 'beforeUpdate', function (event) {
+        if (mouseConstraint.mouse.button !== -1) {
+            if (mouseConstraint.body && mouseConstraint.body == handl) {
+                var biceps = [bicepl];
+                removemuscles(biceps)
+            }
+        }
+        if (mouseConstraint.mouse.button !== 0) {
+            if (mouseConstraint.body && mouseConstraint.body == handl) {
+                bicepl.length = Math.sqrt(Math.pow((shoulderl.position.x - handl.position.x), 2) + Math.pow((shoulderl.position.y - handl.position.y), 2));
+                var biceps = [bicepl];
+                addmuscles(biceps)
 
+            }
+        }
+    });
+    //if mouse clicks on HANDR, then left bicep constraints dissapear, on mouse up, constrainsts are added back in
+    Events.on(engine, 'beforeUpdate', function (event) {
+        if (mouseConstraint.mouse.button !== -1) {
+            if (mouseConstraint.body && mouseConstraint.body == handr) {
+                var biceps = [bicepr];
+                removemuscles(biceps)
+            }
+        }
+        if (mouseConstraint.mouse.button !== 0) {
+            if (mouseConstraint.body && mouseConstraint.body == handr) {
+                bicepr.length = Math.sqrt(Math.pow((shoulderr.position.x - handr.position.x), 2) + Math.pow((shoulderr.position.y - handr.position.y), 2));
+                var biceps = [bicepr];
+                addmuscles(biceps)
 
+            }
+        }
+    });
+
+    //if mouse clicks on TORSO, then both bicep constraints dissapear, on mouse up, constrainsts are added back in
+    Events.on(engine, 'beforeUpdate', function (event) {
+        if (mouseConstraint.mouse.button !== -1) {
+            if (mouseConstraint.body && mouseConstraint.body == torso) {
+                var biceps = [bicepl,bicepr];
+                removemuscles(biceps)
+            }
+        }
+        if (mouseConstraint.mouse.button !== 0) {
+            if (mouseConstraint.body && mouseConstraint.body == torso) {
+                bicepl.length = Math.sqrt(Math.pow((shoulderl.position.x - handl.position.x), 2) + Math.pow((shoulderl.position.y - handl.position.y), 2));
+                bicepr.length = Math.sqrt(Math.pow((shoulderr.position.x - handr.position.x), 2) + Math.pow((shoulderr.position.y - handr.position.y), 2));
+                var biceps = [bicepl, bicepr];
+                addmuscles(biceps)
+
+            }
+        }
+    });
+
+    //key press to move shoulder width
+    document.addEventListener('keydown', function (event) {
+        if (event.keyCode == 37) {
+            trapmid.length = trapmid.length - 5;
+            traps = [trapmid, trapl, trapr];
+            removemuscles(traps);
+            addmuscles(traps);
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.keyCode == 39) {
+            trapmid.length = trapmid.length + 5;
+            traps = [trapmid];
+            removemuscles(traps);
+            addmuscles(traps);
+        }
+    });
 
 
     // event to make object no longer static while mouse is clicked
@@ -551,7 +681,22 @@ Events.on(engine, 'collisionStart', function(event) {
 		} else if (pair.bodyB === collider3) {
 		    pair.bodyA.isStatic = true;
 		}
+		if (pair.bodyA === collider4) {
+		    pair.bodyB.isStatic = true;
+		} else if (pair.bodyB === collider4) {
+		    pair.bodyA.isStatic = true;
+		}
+		if (pair.bodyA === collider5) {
+		    pair.bodyB.isStatic = true;
+		} else if (pair.bodyB === collider5) {
+		    pair.bodyA.isStatic = true;
+		}
+      if (pair.bodyA === collider6) {
+          pair.bodyB.isStatic = true;
+      } else if (pair.bodyB === collider6) {
+          pair.bodyA.isStatic = true;
       }
+}
     });
 
 
@@ -573,7 +718,6 @@ let collider1 = Bodies.rectangle(450, 300, 50, 50, {
 				World.add(world, collider1);
 
 //collider- collider2
-    	// collider is the red box in the middle
 let collider2 = Bodies.rectangle(500, 200, 50, 50, {
 	isSensor: true,
 	isStatic: true,
@@ -590,7 +734,6 @@ let collider2 = Bodies.rectangle(500, 200, 50, 50, {
 				World.add(world, collider2);
 
     //collider- collider3
-    // collider is the red box in the middle
 				let collider3 = Bodies.rectangle(600, 200, 50, 50, {
 				    isSensor: true,
 				    isStatic: true,
@@ -605,6 +748,51 @@ let collider2 = Bodies.rectangle(500, 200, 50, 50, {
 				    angle: 15
 				});
 				World.add(world, collider3);
+
+    //collider- collider4
+				let collider4 = Bodies.rectangle(300, 400, 20, 20, {
+				    isSensor: true,
+				    isStatic: true,
+				    collisionFilter: {
+				        mask: redCategory
+				    },
+				    render: {
+				        strokeStyle: redColor,
+				        fillStyle: 'transparent',
+				        lineWidth : 1,
+				    },
+				    angle: 15
+				});
+				World.add(world, collider4);
+				
+				let collider5 = Bodies.rectangle(500, 400, 20, 20, {
+				    isSensor: true,
+				    isStatic: true,
+				    collisionFilter: {
+				        mask: redCategory
+				    },
+				    render: {
+				        strokeStyle: redColor,
+				        fillStyle: 'transparent',
+				        lineWidth : 1,
+				    },
+				    angle: 15
+				});
+				World.add(world, collider5);
+				let collider6 = Bodies.rectangle(500, 500, 20, 20, {
+				    isSensor: true,
+				    isStatic: true,
+				    collisionFilter: {
+				        mask: redCategory
+				    },
+				    render: {
+				        strokeStyle: redColor,
+				        fillStyle: 'transparent',
+				        lineWidth : 1,
+				    },
+				    angle: 15
+				});
+				World.add(world, collider6);
 
     // run the engine
     Engine.run(engine);
