@@ -1,8 +1,10 @@
 //interesting link http://codepen.io/lilgreenland/pen/jrMvaB?editors=1010 has vectors for gravity and velcoity
 
 //To DO:
-// twist shoulders
-//lock biceps
+// twist shoulders - left and right arrows
+//lock biceps - up and down arrows
+//add force vectors
+
 
 (function () {
     // module aliases
@@ -145,7 +147,7 @@
     });
 
 
-    let elbowl = Bodies.circle(560, 450, 10, {
+    let elbowl = Bodies.circle(565, 450, 10, {
         setMass: 2,
         render: {
             strokeStyle: blueColor,
@@ -155,7 +157,7 @@
             category: blueCategory,
             mask: redCategory}
     });
-    let elbowr = Bodies.circle(640, 450, 10, {
+    let elbowr = Bodies.circle(635, 450, 10, {
         setMass: 2,
         render: {
             strokeStyle: blueColor,
@@ -203,7 +205,7 @@
             fillStyle: 'transparent',
             lineWidth: 1,},
         collisionFilter: {
-            category: blueCategory }
+            category: blueCategory}
     });
     let footblockr = Bodies.rectangle(635, 610, 10, 10, {
         setMass: 0.001,
@@ -213,7 +215,7 @@
             fillStyle: 'transparent',
             lineWidth: 1,},
         collisionFilter: {
-            category: blueCategory }
+            category: blueCategory}
     });
     let kneeblockl = Bodies.circle(585, 550, 1, {
         setMass: 0.01,
@@ -385,8 +387,8 @@
     setairfriction(climber);
 
  //make arm muscles
-    let bicepl = Constraint.create({ bodyA: shoulderl, bodyB: handl, stiffness: 0.4 });
-    let bicepr = Constraint.create({ bodyA: shoulderr, bodyB: handr, stiffness: 0.4 });
+    let bicepl = Constraint.create({ bodyA: shoulderl, bodyB: handl, stiffness: 0.1 });
+    let bicepr = Constraint.create({ bodyA: shoulderr, bodyB: handr, stiffness: 0.1 });
  
     let biceps = [bicepl, bicepr];
     addclimber(biceps);
@@ -532,6 +534,44 @@
             }
         }
     });
+    //if mouse clicks on KNEER, then right leg constraints dissapear, on mouse up, constrainst sare added back in
+    Events.on(engine, 'beforeUpdate', function (event) {
+        if (mouseConstraint.mouse.button !== -1) {
+            if (mouseConstraint.body && mouseConstraint.body == kneer) {
+                var legmusclesr = [leg1r, leg2r, leg3r];
+                removemuscles(legmusclesr)
+            }
+        }
+        if (mouseConstraint.mouse.button !== 0) {
+            if (mouseConstraint.body && mouseConstraint.body == kneer) {
+                leg1r.length = Math.sqrt(Math.pow((footr.position.x - hipr.position.x), 2) + Math.pow((footr.position.y - hipr.position.y), 2));
+                leg2r.length = Math.sqrt(Math.pow((hip.position.x - kneer.position.x), 2) + Math.pow((hip.position.y - kneer.position.y), 2));
+                leg3r.length = Math.sqrt(Math.pow((footr.position.x - hip.position.x), 2) + Math.pow((footr.position.y - hip.position.y), 2));
+                var legmusclesr = [leg1r, leg2r, leg3r];
+                addmuscles(legmusclesr)
+
+            }
+        }
+    });
+    //if mouse clicks on KNEEL, then right leg constraints dissapear, on mouse up, constrainst sare added back in
+    Events.on(engine, 'beforeUpdate', function (event) {
+        if (mouseConstraint.mouse.button !== -1) {
+            if (mouseConstraint.body && mouseConstraint.body == kneel) {
+                var legmusclesl = [leg1l, leg2l, leg3l];
+                removemuscles(legmusclesl)
+            }
+        }
+        if (mouseConstraint.mouse.button !== 0) {
+            if (mouseConstraint.body && mouseConstraint.body == kneel) {
+                leg1l.length = Math.sqrt(Math.pow((footl.position.x - hipl.position.x), 2) + Math.pow((footl.position.y - hipl.position.y), 2));
+                leg2l.length = Math.sqrt(Math.pow((hip.position.x - kneel.position.x), 2) + Math.pow((hip.position.y - kneel.position.y), 2));
+                leg3l.length = Math.sqrt(Math.pow((footl.position.x - hip.position.x), 2) + Math.pow((footl.position.y - hip.position.y), 2));
+                var legmusclesl = [leg1l, leg2l, leg3l];
+                addmuscles(legmusclesl)
+
+            }
+        }
+    });
 
     //event to adjust legs on hip click
     //if mouse clicks down on HIP, then constraints dissapear, 
@@ -547,8 +587,8 @@
         }
     });
  
-    //on mouse up, constrainsts are added back in
-    //length of constraints s recalcualted via pythagoras equation
+    //on mouse up, constrainsts are added back in (HIPS)
+    //length of constraints recalcualted via pythagoras equation
     Events.on(engine, 'beforeUpdate', function (event) {
 
         if (mouseConstraint.mouse.button !== 0) {
@@ -567,7 +607,11 @@
                 var biceps = [bicepl, bicepr];
                 addmuscles(biceps)
         }}
+     
     });
+
+
+
     
     //if mouse clicks on HANDL, then left bicep constraints dissapear, on mouse up, constrainsts are added back in
     Events.on(engine, 'beforeUpdate', function (event) {
@@ -609,7 +653,10 @@
         if (mouseConstraint.mouse.button !== -1) {
             if (mouseConstraint.body && mouseConstraint.body == torso) {
                 var biceps = [bicepl,bicepr];
-                removemuscles(biceps)
+                removemuscles(biceps);
+                //remove constraints limiting hip rotation
+                var hips = [leg1l, leg1r, lowerabl, lowerabr];
+                removemuscles(hips);
             }
         }
         if (mouseConstraint.mouse.button !== 0) {
@@ -617,10 +664,15 @@
                 bicepl.length = Math.sqrt(Math.pow((shoulderl.position.x - handl.position.x), 2) + Math.pow((shoulderl.position.y - handl.position.y), 2));
                 bicepr.length = Math.sqrt(Math.pow((shoulderr.position.x - handr.position.x), 2) + Math.pow((shoulderr.position.y - handr.position.y), 2));
                 var biceps = [bicepl, bicepr];
-                addmuscles(biceps)
-
-            }
+                addmuscles(biceps);
+                //add constraints limiting hip rotation
+                lowerabl.length = Math.sqrt(Math.pow((hipl.position.x - thoracic.position.x), 2) + Math.pow((hipl.position.y - thoracic.position.y), 2));
+                lowerabr.length = Math.sqrt(Math.pow((hipr.position.x - thoracic.position.x), 2) + Math.pow((hipr.position.y - thoracic.position.y), 2));
+                var hips = [leg1l, leg1r, lowerabl, lowerabr];
+                addmuscles(hips);
+             }
         }
+        
     });
 
     //key press to move shoulder width
@@ -642,7 +694,30 @@
         }
     });
 
+    // arm muscles shorten on up press, lengthen on down press
+    document.addEventListener('keydown', function (event) {
+        if (event.keyCode == 40) {
+            bicepl.length = bicepl.length + 5;
+            bicepr.length = bicepr.length + 5;
+            biceps = [bicepl, bicepr];
+            removemuscles(biceps);
+            addmuscles(biceps);
+        }
+    });
+    // arm muscles shorten on up press, lengthen on down press
+    document.addEventListener('keydown', function (event) {
+        if (event.keyCode == 38) {
+            bicepl.length = bicepl.length - 5;
+            bicepr.length = bicepr.length - 5;
+            biceps = [bicepl, bicepr];
+            removemuscles(biceps);
+            addmuscles(biceps);
+        }
+    });
 
+
+
+    //Hands stick to holds
     // event to make object no longer static while mouse is clicked
     // add static = false with click
     Events.on(engine, 'beforeUpdate', function (event) {
@@ -713,7 +788,7 @@ let collider1 = Bodies.rectangle(450, 300, 50, 50, {
 				fillStyle: 'transparent',
 				lineWidth : 1,
 				},
-					angle: 10
+					angle: 0
 					});
 				World.add(world, collider1);
 
@@ -733,7 +808,7 @@ let collider2 = Bodies.rectangle(500, 200, 50, 50, {
 					});
 				World.add(world, collider2);
 
-    //collider- collider3
+   //collider- collider3
 				let collider3 = Bodies.rectangle(600, 200, 50, 50, {
 				    isSensor: true,
 				    isStatic: true,
@@ -765,7 +840,7 @@ let collider2 = Bodies.rectangle(500, 200, 50, 50, {
 				});
 				World.add(world, collider4);
 				
-				let collider5 = Bodies.rectangle(500, 400, 20, 20, {
+				let collider5 = Bodies.rectangle(700, 400, 20, 20, {
 				    isSensor: true,
 				    isStatic: true,
 				    collisionFilter: {
@@ -779,7 +854,7 @@ let collider2 = Bodies.rectangle(500, 200, 50, 50, {
 				    angle: 15
 				});
 				World.add(world, collider5);
-				let collider6 = Bodies.rectangle(500, 500, 20, 20, {
+				let collider6 = Bodies.rectangle(200, 500, 20, 20, {
 				    isSensor: true,
 				    isStatic: true,
 				    collisionFilter: {
@@ -793,6 +868,45 @@ let collider2 = Bodies.rectangle(500, 200, 50, 50, {
 				    angle: 15
 				});
 				World.add(world, collider6);
+
+    //
+    //calculate forces through arms
+
+document.addEventListener('keydown', function (event) {
+    //on up arrow
+    if (event.keyCode == 38) {
+
+        // length = "target resting length of constraint"
+        // compare this to actual length - distance between bodyA and bodyB.
+        //this will give the stretch - the elasticity/stiffness will help convert this to force
+        //so we can measure force throught the bones (forearm, arm) and through the biceps. 
+        //If hanging from one arm, the forces should always add up to the same? 
+
+        // armstretch = armstretchedlength  - armtargetlength 
+        var armstretchedlength = (Math.sqrt(Math.pow((elbowl.position.x - handl.position.x), 2) + Math.pow((elbowl.position.y - handl.position.y), 2)));
+        var armstretch = armstretchedlength - forearml.length;
+        // console.log(armstretch);
+        //forearm.stiffness =default = 1
+        //maximum onearm lock (flexing bicep) = -4
+        //one arm hang- starting ar 90degrees bent, falls to straight arm = 1.0
+        //onearm deadhang = 2.34
+        //weight of elbow = 0.1
+        //hand on shoulder with no weight = 0
+
+        //bicepstretch
+        //var bicepstretchedlength = (Math.sqrt(Math.pow((handl.position.x - shoulderl.position.x), 2) + Math.pow((handl.position.y - shoulderl.position.y), 2)));
+        var bicepstretch = armstretchedlength - bicepl.length;
+        console.log(bicepstretch);
+        //bicepl.stiffness = 0.1
+        //maximum onearm lock = 200
+        //full lock with no bicep tension, falls to 90degrees = 32
+        //deadhang, limp straight arm, hand on shoulder(no weight)= -46 (constraint is being compressed?)
+        //one arm hang- starting ar 90degrees, falls to straight arm = -14
+
+        //if torso is stretched down and arm is stretched, on mouse up = -61
+        //2 arm hang- starting ar 90degrees, falls to 30 degrees off of straight = -9
+
+    }});
 
     // run the engine
     Engine.run(engine);
