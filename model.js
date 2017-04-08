@@ -30,6 +30,12 @@
     }
   });
 
+  MODEL = {
+    engine: engine,
+    world: world,
+    render: render
+  }
+
   // categories
   const defaultCategory = 0x0001;
   const redCategory = 0x0002;

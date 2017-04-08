@@ -7,7 +7,39 @@
     <script src="matter.min.js" type="text/javascript"></script>
   </head>
   <body>
-    <div id="canvas-container"></div>
+    <div id="canvas-container" style="float: left"></div>
+    <div class="controls-container" style="">
+      <table>
+        <tr>
+          <td>
+            <input id="model-reset" value="Reset" type="button">
+          </td>
+          <td>
+            <input id="model-manual" value="Manual Simulation" type="button">
+          </td>
+          <td>
+            <input id="model-auto" value="Auto Simulation" type="button">
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3">
+            <select id="model-bodies"></select>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3"><textarea id="model-body-log" rows="5" cols="60"></textarea></td>
+        </tr>
+        <tr>
+          <td colspan="3">
+            <select id="model-constraints"></select>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3"><textarea id="model-constraint-log" rows="5" cols="60"></textarea></td>
+        </tr>
+      </table>
+    </div>
     <script src="model.js" type="text/javascript"></script>
+    <script src="controller.js" type="text/javascript"></script>
   </body>
 </html>
