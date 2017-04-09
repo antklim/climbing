@@ -1,20 +1,37 @@
-//interesting link http://codepen.io/lilgreenland/pen/jrMvaB?editors=1010 has vectors for gravity and velcoity
+//interesting link http://codepen.io/lilgreenland/en/jrMvaB?editors=1010 has vectors for gravity and velcoity
 
 //To DO:
 // twist shoulders - left and right arrows - still weird
 //lock biceps - up and down arrows - prevent arms from over lengthening
-//limit mouse cnstraint ability to pull whole body when clicling no limbs - there is a range of movment for arml in effect. but also cahnge mouseConstraint.constraint.stiffness?
+//limit mouse cnstraint ability to pull whole body when clicking no limbs - there is a range of movment for arml in effect. but also cahnge mouseConstraint.constraint.stiffness?
 // apply limits to legs
 //left arm can lock to pose but becomes weak when touching a hold - still needs work , will be overridden by toso or hip press
 //straighten or length legs with key presses?
 //add force vectors - done somewhat for left hand, is it useful?
+//  get numbers - force and angle - display them on screen
+//make arm force vector respond to direction of pull - not always towars the shoulder??
+//  make holds directional - depth of hold alludes to how good it is
 //correct mention of removing constraints on mouse press - replace with "relax"
 //add additional constraint to hold arm up - deltoid. seems to help
 //look up mass distribution in human
-//make dyno system
+//make dyno system - prevent climber from flying on multiple key hits. - shift only works if a limb is colliding with a hold? 
+// - collission active? - add max force/velocity?
 
 //leg bones are stretchy - need to be made firm
+//add feet/toes
+//how to make hands grab/stick to sidepull? - are they coorect orientation? are the angle markers correct?
+//foot and knee blockers interact with holds - need them to block feet only.
+//make foot block dissapear when movnig knee - alllow for back step
+//different coloured holds mean something differnt, different shapes - pinch, sloper, crimp?
+//move similar events ie collision start, nbefore update, into same event listener
+// ie: lefthandchanges ();
+//      righthandchanges ();
 
+//hands can pull body around too much
+//apply all changes bilaterally
+//left arm relaxes on hip click
+
+//HUD circle with hip vector Circle - static , same collision as other hud.  they dissapear on mouse click?
 
 (function () {
     // module aliases
@@ -64,13 +81,16 @@
     const redColor = '#C44D58';
     const greenColor = '#C7F464';
     const blueColor = '#4ECDC4';
-    const greyColor = '#708090'
+    const greyColor = '#708090';
+
+    const blackColor = '#000000';
 
     let bottomBorder = Bodies.rectangle(400, 625, 800, 50, {
         collisionFilter: {
             category: defaultCategory
         },
         isStatic: true,
+        friction:2,
         render: {
             fillStyle: 'transparent',
             lineWidth: 1
@@ -80,8 +100,9 @@
 
 
     //add climber
-    var torso = Bodies.circle(600, 400, 10, {
-        setMass: 1,
+    //weight distribution % Thigh/knee 10, lower leg / foot 6.5 , trunk/head 57 (torso 15, thoracic 13, lumbar 14, hip 15), upper arm/shoulder, forearm/hand/elbow 5, 
+    var torso = Bodies.circle(600, 395, 10, {
+        setMass: 15,
         render: {
             strokeStyle: greenColor,
             fillStyle: 'transparent',
@@ -91,8 +112,8 @@
             category: blueCategory
         },
     });
-    var thoracic = Bodies.circle(600, 430, 10, {
-        setMass: 1,
+    var thoracic = Bodies.circle(600, 425, 10, {
+        setMass: 13,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
@@ -103,8 +124,8 @@
             mask: blueCategory
         },
     });
-    var lumbar = Bodies.circle(600, 455, 10, {
-        setMass: 1,
+    var lumbar = Bodies.circle(600, 450, 10, {
+        setMass: 14,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
@@ -115,8 +136,8 @@
             mask: blueCategory
         },
     });
-    var hip = Bodies.circle(600, 485, 20, {
-        setMass: 10,
+    var hip = Bodies.circle(600, 480, 20, {
+        setMass: 15,
         render: {
             strokeStyle: greenColor,
             fillStyle: 'transparent',
@@ -126,7 +147,7 @@
             category: blueCategory,
         },
     });
-    var hipl = Bodies.circle(574, 503, 8, {
+    var hipl = Bodies.circle(574, 500, 8, {
         setMass: 1,
         render: {
             strokeStyle: blueColor,
@@ -138,7 +159,7 @@
             mask: redCategory
         },
     });
-    var hipr = Bodies.circle(626, 503, 8, {
+    var hipr = Bodies.circle(626, 500, 8, {
         setMass: 1,
         render: {
             strokeStyle: blueColor,
@@ -150,8 +171,8 @@
             mask: redCategory
         },
     });
-    var shoulderl = Bodies.circle(570, 410, 10, {
-        setMass: 1,
+    var shoulderl = Bodies.circle(570, 405, 10, {
+        setMass: 5,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
@@ -162,8 +183,8 @@
             mask: blueCategory
         },
     });
-    var shoulderr = Bodies.circle(630, 410, 10, {
-        setMass: 1,
+    var shoulderr = Bodies.circle(630, 405, 10, {
+        setMass: 5,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
@@ -176,8 +197,8 @@
     });
 
 
-    let elbowl = Bodies.circle(565, 450, 10, {
-        setMass: 1,
+    let elbowl = Bodies.circle(565, 447, 10, {
+        setMass: 0.1,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
@@ -188,8 +209,8 @@
             mask: redCategory
         }
     });
-    let elbowr = Bodies.circle(635, 450, 10, {
-        setMass: 1,
+    let elbowr = Bodies.circle(635, 447, 10, {
+        setMass: 0.1,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
@@ -200,8 +221,8 @@
             mask: redCategory
         }
     });
-    let handl = Bodies.circle(540, 490, 10, {
-        setMass: 1,
+    let handl = Bodies.circle(540, 485, 10, {
+        setMass: 0.1,
         isSensor: true,
         render: {
             strokeStyle: redColor,
@@ -212,8 +233,8 @@
             category: redCategory
         }
     });
-    let handr = Bodies.circle(660, 490, 10, {
-        setMass: 1,
+    let handr = Bodies.circle(660, 485, 10, {
+        setMass: 0.1,
         render: {
             strokeStyle: redColor,
             fillStyle: 'transparent',
@@ -224,7 +245,7 @@
         }
     });
     let footl = Bodies.rectangle(575, 610, 15, 15, {
-        setMass: 5,
+        setMass: 10,
         friction: 2,
         restitution: 0.00000001,
         render: {
@@ -237,7 +258,7 @@
         }
     });
     let footblockl = Bodies.rectangle(570, 610, 10, 10, {
-        setMass: 0.001,
+        setMass: 0.00001,
         restitution: 0.0000001,
         friction: 2,
         render: {
@@ -250,7 +271,7 @@
         }
     });
     let footblockr = Bodies.rectangle(635, 610, 10, 10, {
-        setMass: 0.001,
+        setMass: 0.00001,
         restitution: 0.00000001,
         friction: 2,
         render: {
@@ -263,7 +284,7 @@
         }
     });
     let kneeblockl = Bodies.circle(585, 550, 1, {
-        setMass: 0.01,
+        setMass: 0.0001,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
@@ -274,7 +295,7 @@
         }
     });
     let kneeblockr = Bodies.circle(615, 550, 1, {
-        setMass: 0.01,
+        setMass: 0.00,
         render: {
             strokeStyle: blueColor,
             fillStyle: 'transparent',
@@ -285,7 +306,7 @@
         }
     });
     let footr = Bodies.rectangle(625, 610, 15, 15, {
-        setMass: 5,
+        setMass: 10,
         friction:2,
         restitution: 0.00000001,
         render: {
@@ -297,10 +318,10 @@
             category: redCategory
         }
     });
-    let kneel = Bodies.circle(565, 553, 10, {
-        setMass: 5,
+    let kneel = Bodies.circle(560, 547, 10, {
+        setMass: 10,
         render: {
-            strokeStyle: blueColor,
+            strokeStyle: greenColor,
             fillStyle: 'transparent',
             lineWidth: 1,
         },
@@ -308,10 +329,10 @@
             category: greenCategory
         }
     });
-    let kneer = Bodies.circle(635, 553, 10, {
-        setMass: 5,
+    let kneer = Bodies.circle(640, 547, 10, {
+        setMass: 10,
         render: {
-            strokeStyle: blueColor,
+            strokeStyle: greenColor,
             fillStyle: 'transparent',
             lineWidth: 1,
         },
@@ -326,11 +347,15 @@
         shoulderr, shoulderl, elbowl, elbowr, handl, handr,
         footl, footr, kneel, kneer, footblockl, footblockr, kneeblockl, kneeblockr];
 
-    //make wrist to detect arm load
-    let wrist1l = Bodies.circle(542, 488, 1, { isSensor: true });
+    //make wrist (to detect arm load)
+    let wrist1l = Bodies.circle(handl.position.x - 2, handl.position.y + 2, 1, { isSensor: true });
     let wrist2l = Constraint.create({ bodyA: handl, bodyB: wrist1l, stiffness: 1.5 });
     World.add(world, wrist1l);
     World.add(world, wrist2l);
+    let wrist1r = Bodies.circle(handr.position.x + 2, handr.position.y + 2, 1, { isSensor: true });
+    let wrist2r = Constraint.create({ bodyA: handr, bodyB: wrist1r, stiffness: 1.5 });
+    World.add(world, wrist1r);
+    World.add(world, wrist2r);
 
     //constraints
 
@@ -339,7 +364,7 @@
     let arml = Constraint.create({ bodyA: shoulderl, bodyB: elbowl });
     let armr = Constraint.create({ bodyA: shoulderr, bodyB: elbowr });
     let forearml = Constraint.create({ bodyB: elbowl, bodyA: wrist1l });
-    let forearmr = Constraint.create({ bodyB: elbowr, bodyA: handr });
+    let forearmr = Constraint.create({ bodyB: elbowr, bodyA: wrist1r });
     
     var arms = [arml, armr, forearml, forearmr];
 
@@ -374,8 +399,8 @@
     let leg1r = Constraint.create({ bodyA: hipr, bodyB: footr, stiffness: 1.5 });
     let leg2r = Constraint.create({ bodyA: hip, bodyB: kneer, stiffness: 1.5 });
     let leg3r = Constraint.create({ bodyA: hip, bodyB: footr, stiffness: 1 });
-    let femurr = Constraint.create({ bodyA: hipr, bodyB: kneer, stiffness: 1 });
-    let tibiar = Constraint.create({ bodyA: kneer, bodyB: footr, stiffness: 1 });
+    let femurr = Constraint.create({ bodyA: hipr, bodyB: kneer, stiffness: 1.5 });
+    let tibiar = Constraint.create({ bodyA: kneer, bodyB: footr, stiffness: 1.5 });
     let block1l = Constraint.create({ bodyA: footblockl, bodyB: kneeblockl, stiffness: 1.5, render: { strokeStyle: '#708090', lineWidth: 1 } });
     let block2l = Constraint.create({ bodyA: footblockl, bodyB: kneel, stiffness: 1.5, render: { strokeStyle: '#708090', lineWidth: 1 } });
     let block3l = Constraint.create({ bodyA: hipl, bodyB: kneeblockl, stiffness: 1.5, render: { strokeStyle: '#708090', lineWidth: 1 } });
@@ -402,32 +427,22 @@
     let ischium = Constraint.create({ bodyA: hipl, bodyB: hipr, stiffness: 1.5 });
     var hips = [pubisl, pubisr, illiuml, illiumr, ischium];
 
-    var ConstraintrenderBlue = function (arrayOfConstraints) {
+    var ConstraintrenderColor = function (arrayOfConstraints, lineWidth, Color) {
         for (let i = 0; i < arrayOfConstraints.length; i++) {
-            arrayOfConstraints[i].render.lineWidth = 3,
-            arrayOfConstraints[i].render.strokeStyle = blueColor
-        }
-    };
-    var ConstraintrenderGrey = function (arrayOfConstraints) {
-        for (let i = 0; i < arrayOfConstraints.length; i++) {
-            arrayOfConstraints[i].render.lineWidth = 0.5,
-            arrayOfConstraints[i].render.strokeStyle = greyColor
-        }
-    };
-    var ConstraintrenderRed = function (arrayOfConstraints) {
-        for (let i = 0; i < arrayOfConstraints.length; i++) {
-            arrayOfConstraints[i].render.lineWidth = 1,
-            arrayOfConstraints[i].render.strokeStyle = redColor
+            arrayOfConstraints[i].render.lineWidth = lineWidth;
+            arrayOfConstraints[i].render.strokeStyle = Color
         }
     };
 
 
-    ConstraintrenderBlue(arms);
-    ConstraintrenderBlue(core);
-    ConstraintrenderBlue(legs);
-    ConstraintrenderRed(legmuscles);
-    ConstraintrenderBlue(hips);
-    ConstraintrenderGrey(blockers);
+
+    ConstraintrenderColor(arms, 3, blueColor);
+    ConstraintrenderColor(core, 3, blueColor);
+    ConstraintrenderColor(legs, 3, blueColor);
+    ConstraintrenderColor(legmuscles, 1, redColor);
+    ConstraintrenderColor(hips, 3, blueColor);
+    ConstraintrenderColor(blockers, 0.5, greyColor);
+
 
 
     World.add(world, arms);
@@ -447,25 +462,35 @@
 
     addclimber(climber);
 
-    var setairfriction = function (arrayOfBodies) {
+    var setairfriction = function (arrayOfBodies, friction) {
         for (let i = 0; i < arrayOfBodies.length; i++) {
             let list = arrayOfBodies[i];
-            list.frictionAir = 0.01;
+            list.frictionAir = friction;
         }
     };
-    setairfriction(climber);
+    setairfriction(climber, 0.1);
+
+    //set time scale
+    //slow down time?
+    var settimescale = function (arrayOfBodies, time) {
+        for (let i = 0; i < arrayOfBodies.length; i++) {
+            let list = arrayOfBodies[i];
+            list.timeScale = time;
+        }
+    };
+    settimescale(climber, 1);
 
     //make arm muscles
     let bicepl = Constraint.create({ bodyA: shoulderl, bodyB: wrist1l, stiffness: 0.1 });
-    let bicepr = Constraint.create({ bodyA: shoulderr, bodyB: handr, stiffness: 0.1 });
+    let bicepr = Constraint.create({ bodyA: shoulderr, bodyB: wrist1r, stiffness: 0.1 });
     let teresl   = Constraint.create({ bodyA: elbowl, bodyB: thoracic, stiffness: 0.5 });
     let teresr = Constraint.create({ bodyA: elbowr, bodyB: thoracic, stiffness: 0.5 });
-    let deltoidl = Constraint.create({ bodyB: torso, bodyA: handl, stiffness: 0.5 });
-    let deltoidr = Constraint.create({ bodyB: torso, bodyA: handr, stiffness: 0.5 });
+    let deltoidl = Constraint.create({ bodyB: torso, bodyA: wrist1l, stiffness: 0.5 });
+    let deltoidr = Constraint.create({ bodyB: torso, bodyA: wrist1r, stiffness: 0.5 });
     
     let armmuscles = [bicepl, bicepr, teresl, teresr, deltoidl, deltoidr];
     addclimber(armmuscles);
-    ConstraintrenderRed(armmuscles);
+    ConstraintrenderColor(armmuscles, 1 , redColor);
 
  
    
@@ -519,43 +544,47 @@
         }
         return cog;
     };
-
-    var cogCoordinates = calculatecog([torso, hip, shoulderr, shoulderl, footl, footr, elbowl, elbowr, handr, handl]);
-
+    var cogCoordinates = calculatecog([torso, hip, shoulderr, shoulderl, footl, footr, elbowl, elbowr, handr, handl, kneel, kneer, thoracic, lumbar, hipl, hipr]);
+    
     var cog = Bodies.circle(cogCoordinates.x, cogCoordinates.y, 5, { isStatic: true, collisionFilter: { mask: redCategory | greenCategory } });
     World.add(world, cog);
 
     Events.on(engine, 'beforeUpdate', function (event) {  
-        var cogCoordinates = calculatecog([torso, hip, shoulderr, shoulderl, footl, footr, elbowl, elbowr, handr, handl]);   
+        var cogCoordinates = calculatecog([torso, hip, shoulderr, shoulderl, footl, footr, elbowl, elbowr, handr, handl, kneel, kneer, thoracic, lumbar, hipl, hipr]);   
         Body.setPosition(cog, { x: cogCoordinates.x, y: cogCoordinates.y });
     });
+    
 
+
+    //show hip dyno vector in hud
+    var hiphud = Bodies.circle(100, 300, 100, {
+        isStatic: true, collisionFilter: {
+            category: redCategory
+        }, render:{fillStyle:'transparent', lineWidth: 1}
+    });
+    World.add(world, hiphud);
+
+    //body to represnt hip vector
+    var hiphud1 = Bodies.circle(100, 300, 10, {
+        isStatic: true, collisionFilter: {
+            category: redCategory
+        }, render: {  lineWidth: 1 }
+    });
+    World.add(world, hiphud1);
+    //add constraint between hiphud and hiphud1
+    var hiphud2 = Constraint.create({ bodyA: hiphud1, bodyB: hiphud });
+    World.add(world, hiphud2);
 
 
     //Holds that arms and legs stick to
 
     // collider is the red box in the middle
-    let collider = Bodies.rectangle(300, 300, 50, 50, {
+    let collider = Bodies.rectangle(500, 500, 20, 5, {
         isSensor: true,
         isStatic: true,
         collisionFilter: {
-            mask: redCategory
-        },
-        render: {
-            strokeStyle: redColor,
-            fillStyle: 'transparent',
-            lineWidth : 1,
-        },
-        angle: 10
-    });
-    
-    //second collider- collider1
-    // collider is the red box in the middle
-    let collider1 = Bodies.rectangle(450, 300, 50, 50, {
-        isSensor: true,
-        isStatic: true,
-        collisionFilter: {
-            mask: redCategory
+            category: blueCategory,
+            mask: redCategory, greenCategory
         },
         render: {
             strokeStyle: redColor,
@@ -565,83 +594,105 @@
         angle: 0
     });
 
-
-    //collider- collider2
-    let collider2 = Bodies.rectangle(500, 200, 50, 50, {
+    //second collider- collider1
+    // collider is the red box in the middle
+    let collider1 = Bodies.rectangle(500, 400, 20, 5, {
         isSensor: true,
         isStatic: true,
         collisionFilter: {
-            mask: redCategory
+            category: blueCategory,
+            mask: redCategory, greenCategory
         },
         render: {
             strokeStyle: redColor,
             fillStyle: 'transparent',
             lineWidth: 1,
         },
-        angle: 10
+        angle: 0.37
+    });
+
+
+    //collider- collider2
+    let collider2 = Bodies.rectangle(400, 200, 30, 5, {
+        isSensor: true,
+        isStatic: true,
+        collisionFilter: {
+            category: blueCategory,
+            mask: redCategory, greenCategory
+        },
+        render: {
+            strokeStyle: redColor,
+            fillStyle: 'transparent',
+            lineWidth: 1,
+        },
+        angle: -0.75
     });
 
 
     //collider- collider3
-    let collider3 = Bodies.rectangle(600, 200, 50, 50, {
+    let collider3 = Bodies.rectangle(400, 400, 20, 2, {
         isSensor: true,
         isStatic: true,
         collisionFilter: {
-            mask: redCategory
+            category: blueCategory,
+            mask: redCategory, greenCategory
         },
         render: {
             strokeStyle: redColor,
             fillStyle: 'transparent',
             lineWidth: 1,
         },
-        angle: 15
+        angle: -0.5
     });
 
 
     //collider- collider4
-    let collider4 = Bodies.rectangle(300, 400, 20, 20, {
+    let collider4 = Bodies.rectangle(500, 300, 40, 2, {
         isSensor: true,
         isStatic: true,
         collisionFilter: {
-            mask: redCategory
+            category: blueCategory,
+            mask: redCategory, greenCategory
         },
         render: {
             strokeStyle: redColor,
             fillStyle: 'transparent',
             lineWidth: 1,
         },
-        angle: 15
+        angle: -0.37
     });
 
 
-    let collider5 = Bodies.rectangle(700, 400, 20, 20, {
+    let collider5 = Bodies.rectangle(600, 200, 40, 10, {
         isSensor: true,
         isStatic: true,
         collisionFilter: {
-            mask: redCategory
+            category: blueCategory,
+            mask: redCategory, greenCategory
         },
         render: {
             strokeStyle: redColor,
             fillStyle: 'transparent',
             lineWidth: 1,
         },
-        angle: 15
+        angle: 0.7
     });
     World.add(world, collider5);
-    let collider6 = Bodies.rectangle(200, 500, 20, 20, {
+    let collider6 = Bodies.rectangle(600, 100, 40, 5, {
         isSensor: true,
         isStatic: true,
         collisionFilter: {
-            mask: redCategory
+            category: blueCategory,
+            mask: redCategory, greenCategory
         },
         render: {
             strokeStyle: redColor,
             fillStyle: 'transparent',
             lineWidth: 1,
         },
-        angle: 15
+        angle: -0.5
     });
-    var colliders = [collider, collider1, collider2, collider3, collider4, collider5];
+    var colliders = [collider, collider1, collider2, collider3, collider4, collider5, collider6];
 
     World.add(world, colliders);
 
@@ -679,7 +730,7 @@
 
         for (let i = 0; i < arrayOfBodies.length; i++) {
             let list = arrayOfBodies[i];
-            list.stiffness = 0.01
+            list.stiffness = 0.001
         }
     };
     var tensemuscles = function (arrayOfBodies) {
@@ -691,15 +742,84 @@
         }
     };
   
-    var collidercheck = Query.region(colliders, handl.bounds) ; 
-                  
-    document.addEventListener('keydown', function (event) {
-        var colliders = [collider, collider1, collider2, collider3, collider4, collider5];
-        if (event.keyCode == 38) {
-            //Query.region(colliders, handl.bounds);
-            console.log(Query.region(colliders, handl.bounds)) }
-    }
-    );
+    //limit mouse drag of limbs to their rnge of movement from body?
+    var armlrange = Bodies.circle(shoulderl.position.x, shoulderl.position.y, 100, {
+        isSensor: true,
+        restitution: 0.00001,
+        collisionFilter: {
+            category: defaultCategory,
+            mask: redCategory, greenCategory, blueCategory
+        },
+        render: {
+            strokeStyle: blackColor,
+            fillStyle: 'transparent',
+            lineWidth: 0.5,
+            visible: true
+        },
+        Mass: 0.0000001
+    });
+    var armlrangeCon = Constraint.create({ bodyA: armlrange, bodyB: shoulderl, length: 0.1, stiffness: 2 });
+    //World.add(world, armlrange);
+    // World.add(world, armlrangeCon);
+
+    var armrrange = Bodies.circle(shoulderr.position.x, shoulderr.position.y, 100, {
+        isSensor: true,
+        restitution: 0.00001,
+        collisionFilter: {
+            category: defaultCategory,
+            mask: redCategory, greenCategory, blueCategory
+        },
+        render: {
+            strokeStyle: blackColor,
+            fillStyle: 'transparent',
+            lineWidth: 0.5,
+            visible: true
+        },
+        Mass: 0.0000001
+    });
+    var armrrangeCon = Constraint.create({ bodyA: armrrange, bodyB: shoulderr, length: 0.1, stiffness: 2 });
+    World.add(world, armrrange);
+    World.add(world, armrrangeCon);
+
+    //range for legr
+    var legrrange = Bodies.circle(hipr.position.x, hipr.position.y, 125, {
+        isSensor: true,
+        restitution: 0.00001,
+        collisionFilter: {
+            category: defaultCategory,
+            mask: redCategory, greenCategory, blueCategory
+        },
+        render: {
+            strokeStyle: blackColor,
+            fillStyle: 'transparent',
+            lineWidth: 0.5,
+            visible: true
+        },
+        Mass: 0.0000001
+    });
+    var legrrangeCon = Constraint.create({ bodyA: legrrange, bodyB: hipr, length: 0.1, stiffness: 2 });
+    World.add(world, legrrange);
+    World.add(world, legrrangeCon);
+
+    var leglrange = Bodies.circle(hipl.position.x, hipl.position.y, 125, {
+        isSensor: true,
+        restitution: 0.00001,
+        collisionFilter: {
+            category: defaultCategory,
+            mask: redCategory, greenCategory, blueCategory
+        },
+        render: {
+            strokeStyle: blackColor,
+            fillStyle: 'transparent',
+            lineWidth: 0.5,
+            visible: true
+        },
+        Mass: 0.0000001
+    });
+    var leglrangeCon = Constraint.create({ bodyA: leglrange, bodyB: hipl, length: 0.1, stiffness: 2 });
+    // World.add(world, leglrange);
+    // World.add(world, leglrangeCon);
+
  
     //left arm changes tension on hold collision   
     Events.on(engine, 'collisionStart', function (event) {
@@ -752,7 +872,7 @@
             lineWidth: 0.5,
             visible:true
         },
-        Mass:-0.0000001
+        Mass:0.0000001
     });
     var armlrangeCon = Constraint.create({ bodyA: armlrange, bodyB: shoulderl, length: 0.000001, stiffness: 2 });
     World.add(world, armlrange);
@@ -771,7 +891,7 @@
             lineWidth: 0.5,
             visible: true
         },
-        Mass: -0.0000001
+        Mass: 0.0000001
     });
     var leglrangeCon = Constraint.create({ bodyA: leglrange, bodyB: hipl, length: 0.000001, stiffness: 2 });
     World.add(world, leglrange);
@@ -781,68 +901,124 @@
     // MOUSE EVENTS! events to adjust limbs on mouse clicks
     //on mouse down events
     //default  mouseConstraint.constraint.stiffness = 0.1
+    //var mouseconstraintvectorweak = 1e-10;
+    //var mouseconstraintvector = 1e-10 ;
     var defaultconstraintstiffness = 0.1
 
     Events.on(engine, 'beforeUpdate', function (event) {
         if (mouseConstraint.mouse.button !== -1) {
 
+            // speed back up time?
+
+
+            settimescale(climber, 1);
+
+            //set air friction?
+            setairfriction(climber, 0.01);
+
             //if mouse clicks on FOOTL, then left leg constraints lower stiffness, (on mouse up, constraints are added back in)
             if (mouseConstraint.body && mouseConstraint.body == footl) {
-                mouseConstraint.constraint.stiffness = 0.8;
+                leglrange.render.strokeStyle = redColor;
+                mouseConstraint.constraint.stiffness = 0.08;
                 var legmusclesl = [leg1l, leg2l, leg3l, psoasl];
                 relaxmusclesloose(legmusclesl);
-                if (Matter.Bounds.contains(leglrange.bounds, mouseConstraint.mouse.position) === false) { mouseConstraint.constraint.stiffness = 0.01 }
+                // if (Matter.Bounds.contains(leglrange.bounds, mouseConstraint.mouse.position) === false) { mouseConstraint.constraint.stiffness = 0.02 }
 
 
             }
             //if mouse clicks on FOOTR, then right leg constraints dissapear (on mouse up, constraints are added back in)
             if (mouseConstraint.body && mouseConstraint.body == footr) {
-                mouseConstraint.constraint.stiffness = 0.05;
-
+                mouseConstraint.constraint.stiffness = 0.08;
+                legrrange.render.strokeStyle = redColor;
                 var legmusclesr = [leg1r, leg2r, leg3r, psoasr];
-                relaxmusclesloose(legmusclesr)
+                relaxmusclesloose(legmusclesr);
+                // if (Matter.Bounds.contains(legrrange.bounds, mouseConstraint.mouse.position) === false) { mouseConstraint.constraint.stiffness = 0.02 }
+
+
             }
             //if mouse clicks on KNEER, then right leg constraints dissapear, (on mouse up, constrainst sare added back in)
             if (mouseConstraint.body && mouseConstraint.body == kneer) {
                 mouseConstraint.constraint.stiffness = 1;
                 var legmusclesr = [leg1r, leg2r, leg3r, psoasr];
-                relaxmuscles(legmusclesr)
+                relaxmuscles(legmusclesr);
+                //make  footblock noncolldiing while moving knee to allow backstep??? only from frog position? prevent knockknees?
+                footblockr.isSensor=true;
             }
             //if mouse clicks on KNEEL, then right leg constraints dissapear, (on mouse up, constrainst sare added back in)
             if (mouseConstraint.body && mouseConstraint.body == kneel) {
                 mouseConstraint.constraint.stiffness = 1;
                 var legmusclesl = [leg1l, leg2l, leg3l, psoasl];
-                relaxmuscles(legmusclesl)
+                relaxmuscles(legmusclesl);
+                
+                footblockl.isSensor = true;
             }
             //event to adjust legs on hip click
             //if mouse clicks down on HIP, then constraints dissapear,
             if (mouseConstraint.body && mouseConstraint.body == hip) {
-                //   mouseConstraint.constraint.stiffness = 0.5;
+                mouseConstraint.constraint.stiffness = 0.5;
 
                 var legmuscles = [leg1l, leg2l, leg3l, leg1r, leg2r, leg3r, psoasl, psoasr];
-                relaxmuscles(legmuscles);
-                var biceps1 = [bicepl, bicepr, teresl ,teresr];
-                relaxmuscles(biceps1);
+                relaxmusclesloose(legmuscles);
+               // var biceps1 = [bicepl, bicepr, teresl, teresr];
+                var leftmuscles = [bicepl, teresl, deltoidl];
+                var rightmuscles = [bicepr, teresr, deltoidr];
+
+                if (handl.isStatic === true) {
+                    relaxmuscles(leftmuscles);
+                } else tensemuscles(leftmuscles);
+                //  if (handr.isStatic === false) {
+                // tensemuscles(rightmuscles)
+                //  }
+                if (handr.isStatic === true) {
+                    relaxmuscles(rightmuscles);
+                }
+                else tensemuscles(rightmuscles)
+                ;
             }
             //if mouse clicks on HANDL, then left bicep constraints dissapear, (on mouse up, constrainsts are added back in)
             if (mouseConstraint.body && mouseConstraint.body == handl) {
-
+                armlrange.render.strokeStyle = redColor;
+                mouseConstraint.constraint.stiffness = 0.4;
                 var biceps = [bicepl, teresl, deltoidl];
-                relaxmuscles(biceps);
-                if (Matter.Bounds.contains(armlrange.bounds, mouseConstraint.mouse.position) === false) {mouseConstraint.constraint.stiffness=0.01}
+                relaxmusclesloose(biceps);
+                // if (Matter.Bounds.contains(armlrange.bounds, mouseConstraint.mouse.position) === false) { mouseConstraint.constraint.stiffness = 0.02 }
 
             }
             //if mouse clicks on HANDR, then right bicep constraints dissapear, (on mouse up, constrainsts are added back in)
             if (mouseConstraint.body && mouseConstraint.body == handr) {
-                mouseConstraint.constraint.stiffness = 0.05;
+                armrrange.render.strokeStyle = redColor;
+                mouseConstraint.constraint.stiffness = 0.4;
                 var biceps = [bicepr, teresr, deltoidr];
-                relaxmuscles(biceps)
+                relaxmusclesloose(biceps);
+                //  if (Matter.Bounds.contains(armrrange.bounds, mouseConstraint.mouse.position) === false) { mouseConstraint.constraint.stiffness = 0.02 }
+
             }
             //if mouse clicks on TORSO, then both bicep constraints dissapear,( on mouse up, constrainsts are added back in)
             if (mouseConstraint.body && mouseConstraint.body == torso) {
                 mouseConstraint.constraint.stiffness = 1;
+                //var biceps = [bicepl, bicepr, teresl, teresr, deltoidl, deltoidr];
                 var biceps = [bicepl, bicepr, teresl, teresr, deltoidl, deltoidr];
-                relaxmuscles(biceps);
+                //var teres = [teresl, teresr, deltoidl, deltoidr]
+                var leftmuscles = [bicepl, teresl, deltoidl];
+                var rightmuscles = [bicepr, teresr, deltoidr];
+
+
+                //if (handl.isStatic !== true) {
+                //removemuscles(leftmuscles); bicepl.stiffness = 1; teresl.stiffness = 1; deltoidl.stiffness = 1; addmuscles(leftmuscles) }
+
+                if (handl.isStatic === true) {
+                    relaxmuscles(leftmuscles);
+                } else tensemuscles(leftmuscles);
+                //  if (handr.isStatic === false) {
+                // tensemuscles(rightmuscles)
+                //  }
+                if (handr.isStatic === true) {
+                    relaxmuscles(rightmuscles);
+                }
+                else tensemuscles(rightmuscles)
+                ;
+
+
                 //relax constraints limiting hip rotation
                 var hips = [leg1l, leg1r, lowerabl, lowerabr, psoasl, psoasr];
                 relaxmuscles(hips);
@@ -850,8 +1026,15 @@
         }
 
 
+
         //mouse UP events
         if (mouseConstraint.mouse.button !== 0) {
+            leglrange.render.strokeStyle = blackColor;
+            legrrange.render.strokeStyle = blackColor;
+            armlrange.render.strokeStyle = blackColor;
+            armrrange.render.strokeStyle = blackColor;
+
+
             //if mouse clicks up on FOOTL,  constraints are added back in
             if (mouseConstraint.body && mouseConstraint.body == footl) {
                 mouseConstraint.constraint.stiffness = defaultconstraintstiffness;
@@ -863,8 +1046,11 @@
                 leg2l.length = Math.sqrt(Math.pow((hip.position.x - kneel.position.x), 2) + Math.pow((hip.position.y - kneel.position.y), 2));
                 leg3l.length = Math.sqrt(Math.pow((footl.position.x - hip.position.x), 2) + Math.pow((footl.position.y - hip.position.y), 2));
                 psoasl.length = Math.sqrt(Math.pow((lumbar.position.x - kneel.position.x), 2) + Math.pow((lumbar.position.y - kneel.position.y), 2));
-                var legmusclesl = [leg1l, leg2l, leg3l, psoasl];
-                addmuscles(legmusclesl)
+
+                World.add(world, legmusclesl);
+
+
+
             }
             //if mouse clicks up on FOOTR,  constraints are added back in
             if (mouseConstraint.body && mouseConstraint.body == footr) {
@@ -876,7 +1062,8 @@
                 var legmusclesr = [leg1r, leg2r, leg3r, psoasr];
                 removemuscles(legmusclesr);
                 tensemuscles(legmusclesr);
-                addmuscles(legmusclesr)
+                World.add(world, legmusclesr);
+
             }
             //if mouse clicks up on KNEER, then right leg constraints are added back in
             if (mouseConstraint.body && mouseConstraint.body == kneer) {
@@ -888,10 +1075,14 @@
                 var legmusclesr = [leg1r, leg2r, leg3r, psoasr];
                 removemuscles(legmusclesr);
                 tensemuscles(legmusclesr);
-                addmuscles(legmusclesr)
+                World.add(world, legmusclesr);
+
+                //remove footandkneeblock while moving knee to allow backstep??? only from frog position? prevent knockknees?
+                
+                footblockr.isSensor = false;
             }
 
-            //if mouse clicks on KNEEL, then right leg constraints are added back in    
+            //if mouse clicks UP on KNEEL, then right leg constraints are added back in    
             if (mouseConstraint.body && mouseConstraint.body == kneel) {
                 mouseConstraint.constraint.stiffness = defaultconstraintstiffness;
                 leg1l.length = Math.sqrt(Math.pow((footl.position.x - hipl.position.x), 2) + Math.pow((footl.position.y - hipl.position.y), 2));
@@ -901,38 +1092,43 @@
                 var legmusclesl = [leg1l, leg2l, leg3l, psoasl];
                 removemuscles(legmusclesl);
                 tensemuscles(legmusclesl);
-                addmuscles(legmusclesl)
+                World.add(world, legmusclesl);
+
+                //remove footandkneeblock while moving knee to allow backstep??? only from frog position? prevent knockknees?
+
+                footblockl.isSensor = false;
             }
             //if mouse clicks up on HANDL, then left bicep constraints are added back in
             if (mouseConstraint.body && mouseConstraint.body == handl) {
                 mouseConstraint.constraint.stiffness = defaultconstraintstiffness;
-                var biceps = [bicepl];
-                var teres = [teresl, deltoidl];
+                var biceps = [bicepl, teresl, deltoidl];
                 removemuscles(biceps);
-                removemuscles(teres);
+
                 bicepl.length = Math.sqrt(Math.pow((shoulderl.position.x - handl.position.x), 2) + Math.pow((shoulderl.position.y - handl.position.y), 2));
                 teresl.length = Math.sqrt(Math.pow((elbowl.position.x - thoracic.position.x), 2) + Math.pow((elbowl.position.y - thoracic.position.y), 2));
                 deltoidl.length = Math.sqrt(Math.pow((handl.position.x - torso.position.x), 2) + Math.pow((handl.position.y - torso.position.y), 2));
-                tensemusclesweak(biceps);
-                tensemusclesweak(teres);
-                addmuscles(biceps);
-                addmuscles(teres);
+
+                if (handl.isStatic === true) { tensemusclesweak(biceps) };
+                if (handl.isStatic === false) { tensemuscles(biceps) };
+                World.add(world, biceps);
+
                 mouseConstraint.constraint.stiffness = 0.1;
             }
             //if mouse clicks up on HANDR, then left bicep constraints are added back in
             if (mouseConstraint.body && mouseConstraint.body == handr) {
-                mouseConstraint.constraint.stiffness = defaultconstraintstiffness;
+                // mouseConstraint.constraint.stiffness = defaultconstraintstiffness;
                 bicepr.length = Math.sqrt(Math.pow((shoulderr.position.x - handr.position.x), 2) + Math.pow((shoulderr.position.y - handr.position.y), 2));
                 teresr.length = Math.sqrt(Math.pow((elbowr.position.x - thoracic.position.x), 2) + Math.pow((elbowr.position.y - thoracic.position.y), 2));
                 deltoidr.length = Math.sqrt(Math.pow((handr.position.x - torso.position.x), 2) + Math.pow((handr.position.y - torso.position.y), 2));
-                var biceps = [bicepr];
-                var teres = [teresr, deltoidr];
+                var biceps = [bicepr, teresr, deltoidr];
+
                 removemuscles(biceps);
-                removemuscles(teres);
-                tensemusclesweak(biceps);
-                tensemusclesweak(teres);
-                addmuscles(biceps);
-                addmuscles(teres)
+                if (handr.isStatic === true) { tensemusclesweak(biceps) };
+                if (handr.isStatic === false) { tensemuscles(biceps) };
+
+                World.add(world, biceps);
+
+
             }
             //if mouse clicks up on TORSO, then both bicep constraints are added back in
             if (mouseConstraint.body && mouseConstraint.body == torso) {
@@ -943,14 +1139,19 @@
                 teresr.length = Math.sqrt(Math.pow((elbowr.position.x - thoracic.position.x), 2) + Math.pow((elbowr.position.y - thoracic.position.y), 2));
                 deltoidl.length = Math.sqrt(Math.pow((handl.position.x - torso.position.x), 2) + Math.pow((handl.position.y - torso.position.y), 2));
                 deltoidr.length = Math.sqrt(Math.pow((handr.position.x - torso.position.x), 2) + Math.pow((handr.position.y - torso.position.y), 2));
-                var biceps = [bicepl, bicepr];
-                var teres = [teresl, teresr, deltoidl, deltoidr];
-                removemuscles(biceps);
-                removemuscles(teres);
-                tensemusclesweak(biceps);
-                tensemusclesweak(teres);
-                addmuscles(biceps);
-                addmuscles(teres);
+                var biceps = [bicepl, bicepr, teresl, teresr, deltoidl, deltoidr];
+
+                var leftmuscles = [bicepl, teresl, deltoidl];
+                var rightmuscles = [bicepr, teresr, deltoidr];
+
+                //if hand is static, relax constraints on toros click, if hand is not static, keep it tense
+
+                if (handl.isStatic === true) { removemuscles(leftmuscles); bicepl.stiffness = 0.01; teresl.stiffness = 0.01; deltoidl.stiffness = 0.01; World.add(world, leftmuscles) }
+                if (handr.isStatic === true) { removemuscles(rightmuscles); bicepr.stiffness = 0.01; teresr.stiffness = 0.01; deltoidr.stiffness = 0.01; World.add(world, rightmuscles) }
+                if (handl.isStatic === false) { removemuscles(leftmuscles); tensemuscles(leftmuscles); World.add(world, leftmuscles) }
+                if (handr.isStatic === false) { removemuscles(rightmuscles); tensemuscles(rightmuscles); World.add(world, rightmuscles) }
+
+
                 //add constraints limiting hip rotation
                 lowerabl.length = Math.sqrt(Math.pow((hipl.position.x - thoracic.position.x), 2) + Math.pow((hipl.position.y - thoracic.position.y), 2));
                 lowerabr.length = Math.sqrt(Math.pow((hipr.position.x - thoracic.position.x), 2) + Math.pow((hipr.position.y - thoracic.position.y), 2));
@@ -960,7 +1161,7 @@
                 var hips = [leg1l, leg1r, lowerabl, lowerabr, psoasl, psoasr];
                 removemuscles(hips);
                 tensemuscles(hips);
-                addmuscles(hips)
+                World.add(world, hips)
             }
 
             //event to adjust legs on hip click
@@ -980,7 +1181,7 @@
                 var legmuscles = [leg1l, leg2l, leg3l, leg1r, leg2r, leg3r, psoasl, psoasr];
                 removemuscles(legmuscles);
                 tensemuscles(legmuscles);
-                addmuscles(legmuscles);
+                World.add(world, legmuscles);
 
                 bicepl.length = Math.sqrt(Math.pow((shoulderl.position.x - handl.position.x), 2) + Math.pow((shoulderl.position.y - handl.position.y), 2));
                 bicepr.length = Math.sqrt(Math.pow((shoulderr.position.x - handr.position.x), 2) + Math.pow((shoulderr.position.y - handr.position.y), 2));
@@ -988,14 +1189,13 @@
                 teresr.length = Math.sqrt(Math.pow((elbowr.position.x - thoracic.position.x), 2) + Math.pow((elbowr.position.y - thoracic.position.y), 2));
                 deltoidl.length = Math.sqrt(Math.pow((handl.position.x - torso.position.x), 2) + Math.pow((handl.position.y - torso.position.y), 2));
                 deltoidr.length = Math.sqrt(Math.pow((handr.position.x - torso.position.x), 2) + Math.pow((handr.position.y - torso.position.y), 2));
-                var biceps = [bicepl, bicepr];
-                var teres = [teresl, teresr, deltoidl, deltoidr];
+                var biceps = [bicepl, bicepr, teresl, teresr, deltoidl, deltoidr];
                 removemuscles(biceps);
-                removemuscles(teres);
+
                 tensemusclesweak(biceps);
-                tensemusclesweak(teres);
-                addmuscles(biceps);
-                addmuscles(teres);
+
+                World.add(world, biceps);
+
 
                 // dyno system
 
@@ -1012,43 +1212,124 @@
                 const startPoint = mouseConstraint.mouse.position;
                 const endPoint = mouseConstraint.body.position;
                 const mouseconstraintvector = {
-                    x: (endPoint.x - startPoint.x) * 0.004,
-                    y: (endPoint.y - startPoint.y) * 0.004
+                    x: (endPoint.x - startPoint.x) * 0.04,
+                    y: (endPoint.y - startPoint.y) * 0.04
                 };
                 const mouseconstraintvectorweak = {
-                    x: (endPoint.x - startPoint.x) * 0.0007,
-                    y: (endPoint.y - startPoint.y) * 0.0007,
+                    x: (endPoint.x - startPoint.x) * 0.0005,
+                    y: (endPoint.y - startPoint.y) * 0.0005,
                 };
                 console.log(mouseConstraint.body.position);
                 console.log(mouseConstraint.mouse.position);
                 console.log(mouseconstraintlength);
                 console.log(mouseconstraintvector);
                 console.log(mouseconstraintvectorweak);
-              
+               
+                //when mouse up on hip, move body.hiphud1
+                hiphud1.position = { x: hiphud.position.x - mouseconstraintvector.x *30, y: hiphud.position.y - mouseconstraintvector.y *30};
+                
                 document.addEventListener('keydown', function (event) {
                     //on SHIFT key
                     if (event.keyCode == 16) {
-                        handl.isStatic = false;
-                        handr.isStatic = false;
-                        footl.isStatic = false;
-                        footr.isStatic = false;
-                        Body.applyForce(handl, handl.position, mouseconstraintvectorweak);
-                        Body.applyForce(handr, handr.position, mouseconstraintvectorweak);
-                        Body.applyForce(footl, footl.position, mouseconstraintvectorweak);
-                        Body.applyForce(footr, footr.position, mouseconstraintvectorweak);
-                        Body.applyForce(hip, hip.position, mouseconstraintvector);
+                        if (handl.isStatic === true || handr.isStatic === true) {
+                            var limbconstraints = [leg1l, leg2l, leg3l, leg1r, leg2r, leg3r, psoasl, psoasr, bicepl, bicepr, teresl, teresr, deltoidl, deltoidr];
+                            tensemuscles(limbconstraints);
+                            handl.isStatic = false;
+                            handr.isStatic = false;
+                            footl.isStatic = false;
+                            footr.isStatic = false;
 
+                            //increase air friction?
+                            var setairfriction = function (arrayOfBodies, friction) {
+                                for (let i = 0; i < arrayOfBodies.length; i++) {
+                                    let list = arrayOfBodies[i];
+                                    list.frictionAir = friction;
+                                }
+                            };
+                            var climber = [torso, thoracic, lumbar, hip, hipl, hipr,
+                            shoulderr, shoulderl, elbowl, elbowr, handl, handr,
+                            footl, footr, kneel, kneer, footblockl, footblockr, kneeblockl, kneeblockr];
+
+                            setairfriction(climber, 0.3);
+
+                            //slow down time?
+                            var settimescale = function (arrayOfBodies, time) {
+                                for (let i = 0; i < arrayOfBodies.length; i++) {
+                                    let list = arrayOfBodies[i];
+                                    list.timeScale = time;
+                                }
+                            };
+                            settimescale(climber, 0.5);
+
+
+                            Body.applyForce(handl, handl.position, mouseconstraintvectorweak);
+                            Body.applyForce(handr, handr.position, mouseconstraintvectorweak);
+                            Body.applyForce(shoulderl, shoulderl.position, mouseconstraintvector);
+                            Body.applyForce(shoulderr, shoulderr.position, mouseconstraintvector);
+                            Body.applyForce(hip, hip.position, mouseconstraintvectorweak);
+                            Body.applyForce(torso, torso.position, mouseconstraintvector);
+                            //if (footl.isStatic === false) {
+                            //    Body.applyForce(footl, footl.position, mouseconstraintvectorweak);
+                            // }
+                            // if (footl.isStatic === true) {
+                            //     var limbconstraints = [leg1l, leg2l, leg3l, psoasl];
+                            //     relaxmuscles(limbconstraints);
+                            //     Body.applyForce(footl, footl.position, { x: mouseconstraintvectorweak.x * -3, y: mouseconstraintvectorweak.y * -3 });
+                            // };
+
+                            //  console.log(mouseConstraint.body.position);
+                            console.log(mouseConstraint.mouse.position);
+                            console.log(mouseconstraintlength);
+                            console.log(mouseconstraintvector);
+                            console.log(mouseconstraintvectorweak);
+                            console.log(hip);}
+                        else (console.log(mouseconstraintvector))
+
+                    }
+                    //on SPACE arrow
+                    if (event.keyCode == 32) {
+                        var wriststretchedlength = (Math.sqrt(Math.pow((handl.position.x - wrist1l.position.x), 2) + Math.pow((handl.position.y - wrist1l.position.y), 2)));
+                        var wriststretch = (wriststretchedlength - wrist2l.length);
+                        var armangle = -1 * Math.atan2(shoulderl.position.x - handl.position.x, shoulderl.position.y - handl.position.y);
+
+
+
+                        if (Matter.Bounds.overlaps(collider.bounds, handl.bounds) === true) { var holdangle = collider.angle }
+                        if (Matter.Bounds.overlaps(collider1.bounds, handl.bounds) === true) { var holdangle = collider1.angle }
+                        if (Matter.Bounds.overlaps(collider2.bounds, handl.bounds) === true) { var holdangle = collider2.angle }
+                        if (Matter.Bounds.overlaps(collider3.bounds, handl.bounds) === true) { var holdangle = collider3.angle }
+                        if (Matter.Bounds.overlaps(collider4.bounds, handl.bounds) === true) { var holdangle = collider4.angle }
+                        if (Matter.Bounds.overlaps(collider5.bounds, handl.bounds) === true) { var holdangle = collider5.angle }
+                        if (Matter.Bounds.overlaps(collider6.bounds, handl.bounds) === true) { var holdangle = collider6.angle }
+
+                        var angledifference = Math.abs(armangle - holdangle);
+
+                        //dyno vector
+
+                        console.log(wriststretch);
+                        console.log(armangle);
+                        console.log(holdangle);
+                        console.log(angledifference);
+                        console.log(mouseconstraintvector);
 
                     }
                 });
-
+                ;
             }
 
         }
 
 
 
-    });
+        //set COG position
+
+        var cogCoordinates = calculatecog([torso, hip, shoulderr, shoulderl, footl, footr, kneel, kneer, elbowl, elbowr, handr, handl, lumbar, thoracic, hipl, hipr]);
+        Body.setPosition(cog, { x: cogCoordinates.x, y: cogCoordinates.y });
+    }
+    );
+
+
+
 
 
 
@@ -1119,50 +1400,149 @@
     });
 
 
-
-    Events.on(engine, 'collisionStart', function(event) {
-        const pairs = event.pairs;
-
-        for (let i = 0; i < pairs.length; i++) {
-            const pair = pairs[i];
-
-            if (pair.bodyA === collider) {
-                pair.bodyB.isStatic = true;
-            } else if (pair.bodyB === collider) {
-                pair.bodyA.isStatic = true;
-            }
-            if (pair.bodyA === collider1) {
-                pair.bodyB.isStatic = true;
-            } else if (pair.bodyB === collider1) {
-                pair.bodyA.isStatic = true;
-            }
-            if(pair.bodyA === collider2) {
-                pair.bodyB.isStatic = true;
-            } else if (pair.bodyB === collider2) {
-                pair.bodyA.isStatic = true;
-            }
-            if (pair.bodyA === collider3) {
-                pair.bodyB.isStatic = true;
-            } else if (pair.bodyB === collider3) {
-                pair.bodyA.isStatic = true;
-            }
-            if (pair.bodyA === collider4) {
-                pair.bodyB.isStatic = true;
-            } else if (pair.bodyB === collider4) {
-                pair.bodyA.isStatic = true;
-            }
-            if (pair.bodyA === collider5) {
-                pair.bodyB.isStatic = true;
-            } else if (pair.bodyB === collider5) {
-                pair.bodyA.isStatic = true;
-            }
-            if (pair.bodyA === collider6) {
-                pair.bodyB.isStatic = true;
-            } else if (pair.bodyB === collider6) {
-                pair.bodyA.isStatic = true;
+    //Hands stick to holds
+    // event to make object no longer static while mouse is clicked (only if it is climber body though) - to prevent hold blockers dissapearing???
+    // add static = false with click
+    Events.on(engine, 'beforeUpdate', function (event) {
+        if (mouseConstraint.mouse.button !== -1) {
+            var climber = [torso, thoracic, lumbar, hip, hipl, hipr,
+        shoulderr, shoulderl, elbowl, elbowr, handl, handr,
+        footl, footr, kneel, kneer, footblockl, footblockr, kneeblockl, kneeblockr];
+            for (let i = 0; i < climber.length; i++) {
+                if (mouseConstraint.body === climber[i]) {
+                    if (mouseConstraint.body && mouseConstraint.body.isStatic === true) {
+                        mouseConstraint.body.isStatic = false;
+                    }
+                }
             }
         }
     });
+
+
+    //
+
+   
+
+    //load and angle limits
+    //hands stick to holds (colliders)  - if load is below limit (2) and angle is within limit (1.5rad)
+    Events.on(engine, 'collisionActive', function (event) {
+        const pairs = event.pairs;
+        for (let i = 0; i < colliders.length; i++) {
+            //var holdpositivity = colliders[i].height *0.0001;
+            //FOR LEFT
+            var armanglel = -1 * Math.atan2(wrist1l.position.x - handl.position.x, wrist1l.position.y - handl.position.y);
+            var wriststretchedlengthl = (Math.sqrt(Math.pow((handl.position.x - wrist1l.position.x), 2) + Math.pow((handl.position.y - wrist1l.position.y), 2)));
+            var wriststretchl = (wriststretchedlengthl - wrist2l.length);
+
+            var lowlimit = 3;
+            var maxlimit = 5;
+            if (wriststretchl >= maxlimit) { handl.isStatic = false }
+            else if (wriststretchl >= lowlimit) {
+
+                if (Math.abs(armanglel - colliders[i].angle) >= 2) { handl.isStatic = false }
+            }
+            //FOR RIGHT
+            var armangler = -1 * Math.atan2(wrist1r.position.x - handr.position.x, wrist1r.position.y - handr.position.y);
+            var wriststretchedlengthr = (Math.sqrt(Math.pow((handr.position.x - wrist1r.position.x), 2) + Math.pow((handr.position.y - wrist1r.position.y), 2)));
+            var wriststretchr = (wriststretchedlengthr - wrist2r.length);
+
+            var lowlimit = 3;
+            var maxlimit = 5;
+            if (wriststretchr >= maxlimit) { handr.isStatic = false }
+            else if (wriststretchr >= lowlimit) {
+
+                if (Math.abs(armangler - colliders[i].angle) >= 2) { handr.isStatic = false }
+            }
+            else {
+                for (let i = 0; i < pairs.length; i++) {
+                    const pair = pairs[i];
+
+                    if (pair.bodyA === collider) {
+                        pair.bodyB.isStatic = true;
+                    } else if (pair.bodyB === collider) {
+                        pair.bodyA.isStatic = true;
+                    }
+                    if (pair.bodyA === collider1) {
+                        pair.bodyB.isStatic = true;
+                    } else if (pair.bodyB === collider1) {
+                        pair.bodyA.isStatic = true;
+                    }
+                    if (pair.bodyA === collider2) {
+                        pair.bodyB.isStatic = true;
+                    } else if (pair.bodyB === collider2) {
+                        pair.bodyA.isStatic = true;
+                    }
+                    if (pair.bodyA === collider3) {
+                        pair.bodyB.isStatic = true;
+                    } else if (pair.bodyB === collider3) {
+                        pair.bodyA.isStatic = true;
+                    }
+                    if (pair.bodyA === collider4) {
+                        pair.bodyB.isStatic = true;
+                    } else if (pair.bodyB === collider4) {
+                        pair.bodyA.isStatic = true;
+                    }
+                    if (pair.bodyA === collider5) {
+                        pair.bodyB.isStatic = true;
+                    } else if (pair.bodyB === collider5) {
+                        pair.bodyA.isStatic = true;
+                    }
+                    if (pair.bodyA === collider6) {
+                        pair.bodyB.isStatic = true;
+                    } else if (pair.bodyB === collider6) {
+                        pair.bodyA.isStatic = true;
+                    }
+                }
+
+            }
+        }
+        //To make arms stay rigid when floating freely, but weak when attached to a hold
+
+        // var colliders = [collider, collider1, collider2, collider3, collider4, collider5];
+        var leftmuscles = [bicepl, teresl, deltoidl];
+        var rightmuscles = [bicepr, teresr, deltoidr];
+
+        for (let i = 0; i < pairs.length; i++) {
+            const pair = pairs[i];
+            //left arm
+            var wriststretchedlengthl = (Math.sqrt(Math.pow((handl.position.x - wrist1l.position.x), 2) + Math.pow((handl.position.y - wrist1l.position.y), 2)));
+            var wriststretchl = (wriststretchedlengthl - wrist2l.length);
+
+            var limit = 4;
+            if (wriststretchl >= limit) {
+                console.log(wriststretchl);
+                if (pair.bodyA === handl) {
+                    if (pair.bodyB === collider || collider1 || collider2 || collider3 || collider4 || collider5 || collider6)
+                    { removemuscles(leftmuscles); bicepl.stiffness = 0.2; teresl.stiffness = 0.2; deltoidl.stiffness = 0.2; World.add(world, leftmuscles) }
+                }
+                if (pair.bodyB === handl) {
+                    if (pair.bodyA === collider || collider1 || collider2 || collider3 || collider4 || collider5 || collider6)
+                    { removemuscles(leftmuscles); bicepl.stiffness = 0.2; teresl.stiffness = 0.2; deltoidl.stiffness = 0.2; World.add(world, leftmuscles) }
+                }
+                else { removemuscles(leftmuscles); bicepl.stiffness = 0.5; teresl.stiffness = 0.5; deltoidl.stiffness = 0.5; World.add(world, leftmuscles) }
+
+            }
+            // else tensemuscles(leftmuscles)
+
+            //right arm
+            var wriststretchedlengthr = (Math.sqrt(Math.pow((handr.position.x - wrist1r.position.x), 2) + Math.pow((handr.position.y - wrist1r.position.y), 2)));
+            var wriststretchr = (wriststretchedlengthr - wrist2r.length);
+            var limit = 4;
+            if (wriststretchr >= limit) {
+                if (pair.bodyA === handr) {
+                    if (pair.bodyB === collider || collider1 || collider2 || collider3 || collider4 || collider5 || collider6)
+                    { removemuscles(rightmuscles); bicepr.stiffness = 0.2; teresr.stiffness = 0.2; deltoidr.stiffness = 0.2; World.add(world, rightmuscles) }
+                }
+                if (pair.bodyB === handr) {
+                    if (pair.bodyA === collider || collider1 || collider2 || collider3 || collider4 || collider5 || collider6)
+                    { removemuscles(rightmuscles); bicepr.stiffness = 0.2; teresr.stiffness = 0.2; deltoidr.stiffness = 0.2; World.add(world, rightmuscles) }
+                }
+                //else tensemuscles(rightmuscles)
+            }
+        }
+
+    });
+
 
 
     // run the engine
@@ -1181,15 +1561,14 @@
     // pass mouse to renderer to enable showMousePosition
     render.mouse = mouseConstraint.mouse;
 
-
     //Render vectors!!
     //render COG 
     Events.on(render, 'afterRender', function () {
-        var cogCoordinates = calculatecog([torso, hip, shoulderr, shoulderl, footl, footr, elbowl, elbowr, handr, handl]);
+        var cogCoordinates = calculatecog([torso, hip, shoulderr, shoulderl, footl, footr, elbowl, elbowr, handr, handl, kneel, kneer, thoracic, lumbar, hipl, hipr]);
         var mouse = mouseConstraint.mouse,
             context = render.context,
             bodies = Composite.allBodies(engine.world),
-            startPoint = { x: cogCoordinates.x, y: 0},
+            startPoint = { x: cogCoordinates.x, y: 0 },
             endPoint = { x: cogCoordinates.x, y: 600 };
 
         var collisions = Query.ray(bodies, startPoint, endPoint);
@@ -1198,56 +1577,235 @@
 
         context.beginPath();
         context.moveTo(startPoint.x, startPoint.y);
-        context.lineTo(endPoint.x, endPoint.y);  
+        context.lineTo(endPoint.x, endPoint.y);
         context.lineWidth = 0.5;
         context.stroke();
 
         //       Render.endViewTransform(render);
-    });
 
-    //render vector from hand to shoulder - bicep? add in arm vector /// this is all relative to original position? need to add angle?? 
-    //how to make line come from hand?
-    Events.on(render, 'afterRender', function () {
-        var armstretchedlength = (Math.sqrt(Math.pow((elbowl.position.x - handl.position.x), 2) + Math.pow((elbowl.position.y - handl.position.y), 2)));
-        var armstretch = armstretchedlength - forearml.length;
-        var wriststretchedlength = (Math.sqrt(Math.pow((handl.position.x - wrist1l.position.x), 2) + Math.pow((handl.position.y - wrist1l.position.y), 2)));
-        var wriststretch = (wriststretchedlength - wrist2l.length);
+
+        //render vector from L hand to shoulder - bicep? add in arm vector /// this is all relative to original position? need to add angle?? 
+        //how to make line come from hand?
+       // var armstretchedlengthl = (Math.sqrt(Math.pow((elbowl.position.x - handl.position.x), 2) + Math.pow((elbowl.position.y - handl.position.y), 2)));
+       // var armstretchl = armstretchedlengthl - forearml.length;
+        var wriststretchedlengthl = (Math.sqrt(Math.pow((handl.position.x - wrist1l.position.x), 2) + Math.pow((handl.position.y - wrist1l.position.y), 2)));
+        var wriststretchl = (wriststretchedlengthl - wrist2l.length);
         //console.log(wriststretch);
 
         var context = render.context;
-        var endPoint = { x: shoulderl.position.x , y: shoulderl.position.y};
-        var startPoint = { x: handl.position.x, y: handl.position.y };
+        var endPointl = { x: wrist1l.position.x, y: wrist1l.position.y };
+        var startPointl = { x: handl.position.x, y: handl.position.y };
+
+        var vectorscale = 4;
+        if (wriststretchl >= 4) { wriststretchl = 4 }
+       // else wriststretchl = (wriststretchedlengthl - wrist2l.length);
 
 
         context.beginPath();
 
-        
-        context.moveTo((startPoint.x + (startPoint.x - endPoint.x) * 0.5 * wriststretch), (startPoint.y + (startPoint.y - endPoint.y) * 0.5 * wriststretch));
-        context.lineTo(startPoint.x, startPoint.y);
+
+        context.moveTo((startPointl.x + (startPointl.x - endPointl.x) * vectorscale * wriststretchl), (startPointl.y + (startPointl.y - endPointl.y) * vectorscale * wriststretchl));
+        context.lineTo(startPointl.x, startPointl.y);
         context.lineWidth = 4;
-        if (wriststretch > 1) { context.strokeStyle = redColor }
-        else { context.strokeStyle = greenColor };
+        if (wriststretchl > 3) { context.strokeStyle = redColor }
+        if (wriststretchl < 1) { context.strokeStyle = greenColor }
+        if (wriststretchl >= 1 && wriststretchl <= 3) { context.strokeStyle = blueColor }
+
+        //if (wriststretchl > 3) { context.strokeStyle = redColor }
+       // else { context.strokeStyle = greenColor };
         context.stroke();
 
+        //render vector from R hand to shoulder - bicep? add in arm vector /// this is all relative to original position? need to add angle?? 
+        //how to make line come from hand?
+        //var armstretchedlengthr = (Math.sqrt(Math.pow((elbowr.position.x - handr.position.x), 2) + Math.pow((elbowr.position.y - handr.position.y), 2)));
+        //var armstretchr = armstretchedlengthr - forearmr.length;
+        var wriststretchedlengthr = (Math.sqrt(Math.pow((handr.position.x - wrist1r.position.x), 2) + Math.pow((handr.position.y - wrist1r.position.y), 2)));
+        var wriststretchr = (wriststretchedlengthr - wrist2r.length);
+        //console.log(wriststretch);
 
-    });
+        var context = render.context;
+        var endPointr = { x: wrist1r.position.x, y: wrist1r.position.y };
+        var startPointr = { x: handr.position.x, y: handr.position.y };
 
-    //
-    //calculate forces through arms - validate?
 
-    document.addEventListener('keydown', function (event) {
-        //on up arrow
-        if (event.keyCode == 38) {
-            var wriststretchedlength = (Math.sqrt(Math.pow((handl.position.x - wrist1l.position.x), 2) + Math.pow((handl.position.y - wrist1l.position.y), 2)));
-            var wriststretch = (wriststretchedlength - wrist2l.length);
-            //console.log(wriststretch);
+        context.beginPath();
+
+
+        context.moveTo((startPointr.x + (startPointr.x - endPointr.x) * vectorscale * wriststretchr), (startPointr.y + (startPointr.y - endPointr.y) * vectorscale * wriststretchr));
+        context.lineTo(startPointr.x, startPointr.y);
+        context.lineWidth = 4;
+        if (wriststretchr > 3) { context.strokeStyle = redColor }
+        if (wriststretchr < 1) { context.strokeStyle = greenColor }
+        if (wriststretchr >= 1 && wriststretchr <= 3) { context.strokeStyle = blueColor }
+
+        //if (wriststretchr > 3) { context.strokeStyle = redColor }
+        //else { context.strokeStyle = greenColor }
+        context.stroke();
+
+        //render vector lines for collider holds?
+
+
+        //for each collider - vector goes to colliders[i].position.x +  10*Math.sin(colliders[i].angle), colliders[i].position.y +  10*Math.cos(colliders[i].angle)
+        var colliders = [collider, collider1, collider2, collider3, collider4, collider5, collider6];
+        for (let i = 0; i < colliders.length; i++) {
+
+            var context = render.context;
+
+            context.beginPath();
+
+            context.moveTo(colliders[i].position.x + 20 * Math.cos(colliders[i].angle + 1.55), colliders[i].position.y + 20 * Math.sin(colliders[i].angle + 1.55));
+            //context.moveTo(500, 500);
+            context.lineTo(colliders[i].position.x, colliders[i].position.y);
+            context.lineWidth = 0.5;
+            context.strokeStyle = greenColor;
+            context.stroke();
 
         }
+
+
+
+        
+        //HUD display bar of wriststretchR 1=25, 2=50, 3=75, 4=100
+        
+        var context = render.context;
+        var size = 80;
+        var x = 430;
+        var y = 20;
+        var wriststretchedlengthr = (Math.sqrt(Math.pow((handr.position.x - wrist1r.position.x), 2) + Math.pow((handr.position.y - wrist1r.position.y), 2)));
+        var wriststretchr = (wriststretchedlengthr - wrist2r.length)*0.8;
+        if (wriststretchr >= 4) { wriststretchr = 4 }
+       // else wriststretchr = (wriststretchedlengthr - wrist2r.length);
+
+
+        //ctx.lineWidth = 2;
+        //ctx.strokeStyle = '#999';
+        //ctx.strokeRect(x - 1, y - 1, size + 2, 12); //draw outline
+        //ctx.fillStyle = '#512';
+        if (wriststretchr > 3) { context.fillStyle = redColor }
+        if (wriststretchr < 1) { context.fillStyle = greenColor }
+        if (wriststretchr >= 1 && wriststretchr <= 3) { context.fillStyle = blueColor }
+        context.fillRect(x, y, size * wriststretchr, 10); //draw bar
+    
+        //HUD display bar of wriststretchLEFT 
+        var context = render.context;
+        var size = -80;
+        var x = 370;
+        var y = 20;
+        var wriststretchedlengthl = (Math.sqrt(Math.pow((handl.position.x - wrist1l.position.x), 2) + Math.pow((handl.position.y - wrist1l.position.y), 2)));
+        var wriststretchl = (wriststretchedlengthl - wrist2l.length) * 0.8;
+        if (wriststretchl >= 4) { wriststretchl = 4 }
+        // else wriststretchl = (wriststretchedlengthl - wrist2r.length);
+
+
+        //ctx.lineWidth = 2;
+        //ctx.strokeStyle = '#999';
+        //ctx.strokeRect(x - 1, y - 1, size + 2, 12); //draw outline
+        //ctx.fillStyle = '#512';
+        if (wriststretchl > 3) { context.fillStyle = redColor }
+        if (wriststretchl < 1) { context.fillStyle = greenColor }
+        if (wriststretchl >= 1 && wriststretchl <= 3) { context.fillStyle = blueColor }
+        context.fillRect(x, y, size * wriststretchl, 10); //draw bar
+
+    
+        //add scale%  - RIGHTwrist stretch
+        var scale = 8;
+        var box = {
+            x:1190, y: 47
+        }
+        context.textAlign = "right";
+        context.textBaseline = "middle";
+        context.lineJoin = 'round';
+        context.setTransform(1, 0, 0, 1, 0.5, 0.5); //hack to stop antialiasing
+        context.fillStyle = "#222";
+        context.font = "15px Arial";
+        context.fillText("0", box.x / 2 - 20 * scale, box.y );
+        context.fillText("25", box.x / 2 - 10 * scale, box.y);
+        context.fillText("50", box.x / 2, box.y);
+        context.fillText("75", box.x / 2 + 10 * scale, box.y);
+        context.fillText("100", box.x / 2 + 20 * scale, box.y);
+        context.font = "bold 18px Arial";
+  //add scale % - LEFT wrist stretch
+        var scale = 8;
+        var box = {
+            x: 435, y: 47
+        }
+        context.textAlign = "right";
+        context.textBaseline = "middle";
+        context.lineJoin = 'round';
+        context.setTransform(1, 0, 0, 1, 0.5, 0.5); //hack to stop antialiasing
+        context.fillStyle = "#222";
+        context.font = "15px Arial";
+        context.fillText("100", box.x / 2 - 20 * scale, box.y);
+        context.fillText("75", box.x / 2 - 10 * scale, box.y);
+        context.fillText("50", box.x / 2, box.y);
+        context.fillText("25", box.x / 2 + 10 * scale, box.y);
+        context.fillText("0", box.x / 2 + 20 * scale, box.y);
+        context.font = "bold 18px Arial";
+
+        
+// add data for LEFT wrist stretch
+        context.textAlign = "right";
+        context.textBaseline = "middle";
+        context.lineJoin = 'round';
+        context.setTransform(1, 0, 0, 1, 0.5, 0.5); //hack to stop antialiasing
+        if (wriststretchl <= 1) { context.fillStyle = greenColor; }
+        if (wriststretchl > 1 && wriststretchl <= 3) {context.fillStyle = blueColor;}
+        if (wriststretchl > 3) { context.fillStyle = redColor; };
+        context.font = "16px Arial";
+        context.fillText(Math.round(wriststretchl*25),397, 25);
+
+// add data for RIGHT wrist stretch
+        context.textAlign = "middle";
+        context.textBaseline = "middle";
+        context.lineJoin = 'round';
+        context.setTransform(1, 0, 0, 1, 0.5, 0.5); //hack to stop antialiasing
+        if (wriststretchr <= 1) { context.fillStyle = greenColor; }
+        if (wriststretchr > 1 && wriststretchr <= 3) { context.fillStyle = blueColor; }
+        if (wriststretchr > 3) { context.fillStyle = redColor; };
+        context.font = "16px Arial";
+        context.fillText(Math.round(wriststretchr * 25), 425, 25);
+
+    }
+    );
+    //for left
+    var greenbarl = Bodies.rectangle(330, 25, 80, 10, {
+        collisionFilter: {
+            category: redCategory
+        }, isStatic: true, isSensor: true, render: { fillStyle: 'transparent', lineWidth: 1, strokeStyle: greenColor }
     });
+    var bluebarl = Bodies.rectangle(210, 25, 160, 10, {
+        collisionFilter: {
+            category: redCategory
+        }, isStatic: true, isSensor: true, render: { fillStyle: 'transparent', lineWidth: 1, strokeStyle: blueColor }
+    });
+    var redbarl = Bodies.rectangle(90, 25, 80, 10, {
+        collisionFilter: {
+            category: redCategory
+        }, isStatic: true, isSensor: true, render: { fillStyle: 'transparent', lineWidth: 1, strokeStyle: redColor }
+    });
+    var barsl = [greenbarl, bluebarl, redbarl];
+    World.add(world, barsl);
 
-
+    //for right
+    var greenbarr = Bodies.rectangle(470, 25, 80, 10, {collisionFilter: {
+        category: redCategory}, isStatic:true, isSensor:true, render: { fillStyle: 'transparent', lineWidth: 1, strokeStyle: greenColor } });
+    var bluebarr = Bodies.rectangle(590, 25, 160, 10, {
+        collisionFilter: {
+            category: redCategory
+        }, isStatic: true, isSensor: true, render: { fillStyle: 'transparent', lineWidth: 1, strokeStyle: blueColor }
+    });
+    var redbarr = Bodies.rectangle(710, 25, 80, 10, {
+        collisionFilter: {
+            category: redCategory
+        }, isStatic: true, isSensor: true, render: { fillStyle: 'transparent', lineWidth: 1, strokeStyle: redColor }
+    });
+    var barsr = [greenbarr, bluebarr, redbarr];
+    World.add(world, barsr);
       
     
+   
+
+
 
    
 
